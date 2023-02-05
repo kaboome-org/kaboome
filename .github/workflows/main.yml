@@ -5,6 +5,7 @@ jobs:
     runs-on: ubuntu-latest
     name: Build Quasar
     steps:
+    - uses: actions/checkout@v3
     - name: Build Quasar
       run: |
             yarn global add @quasar/cli
