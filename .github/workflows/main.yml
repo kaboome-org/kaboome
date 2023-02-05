@@ -8,6 +8,7 @@ jobs:
     - name: Build Quasar
       run: |
             yarn global add @quasar/cli
+            cd frontend
             yarn install --frozen-lockfile
             quasar build
             cd dist/spa
