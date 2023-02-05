@@ -1,0 +1,20 @@
+name: Build Quasar
+on: [push]
+jobs:
+  build_vue:
+    runs-on: ubuntu-latest
+    name: Build Quasar
+    steps:
+    - name: Build Quasar
+      run: |
+            yarn global add @quasar/cli
+            yarn install --frozen-lockfile
+            quasar build
+            cd dist/spa
+            git config --global user.email "CI@example.com"
+            git config --global user.name "CI"
+            git init
+            git add -A
+            git commit -m '${{ inputs.gitmsg }}'
+            git push -f https://lamaun:${{ secrets.GITHUB_TOKEN }}@github.com/kaboome-org/kaboome.git master:gh-pages
+      shell: bash
