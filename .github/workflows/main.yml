@@ -10,6 +10,7 @@ jobs:
       run: |
             yarn global add @quasar/cli
             cd frontend
+            sed -i "s|/-/|/kaboome/|g" quasar.config.js
             yarn install --frozen-lockfile
             quasar build
             cd dist/spa
