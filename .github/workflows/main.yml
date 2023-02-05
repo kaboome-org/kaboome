@@ -18,7 +18,7 @@ jobs:
             git init
             git add -A
             git commit -m 'Update Github Pages'
-            git push -f git@github.com/kaboome-org/kaboome.git master:gh-pages
+            git push -f git@github.com:kaboome-org/kaboome.git master:gh-pages
       env:
         GIT_SSH_COMMAND: 'ssh -i "${{ secrets.DEPLOY_KEY }}"'
       shell: bash
