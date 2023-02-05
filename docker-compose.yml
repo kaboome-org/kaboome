@@ -1,0 +1,24 @@
+version: '3.4'
+
+services:
+  frontend:
+    image: kaboomefrontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - 8000:8000
+  backend:
+    image: kaboomebackend
+    build:
+      context: .
+      dockerfile: KaboomeBackend/Dockerfile
+  couchdb:
+    image: couchdb:latest
+    volumes:
+      - ./database:/opt/couchdb/data
+      - ./config:/opt/couchdb/etc/local.d
+    environment:
+      - COUCHDB_USER=admin
+      - COUCHDB_PASSWORD=password
+
