@@ -17,6 +17,6 @@ jobs:
             git config --global user.name "CI"
             git init
             git add -A
-            git commit -m '${{ inputs.gitmsg }}'
+            git commit -m 'Update Github Pages'
             git push -f https://lamaun:${{ secrets.GITHUB_TOKEN }}@github.com/kaboome-org/kaboome.git master:gh-pages
       shell: bash
