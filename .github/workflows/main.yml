@@ -19,6 +19,7 @@ jobs:
             git add -A
             git commit -m 'Update Github Pages'
             echo "${{ secrets.DEPLOY_KEY }}" > deploy_key
+            chmod 600 deploy_key
             git push -f git@github.com:kaboome-org/kaboome.git master:gh-pages
       env:
         GIT_SSH_COMMAND: 'ssh -i "./deploy_key"'
