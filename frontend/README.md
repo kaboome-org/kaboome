@@ -1,4 +1,4 @@
-# Quasar App (kaboome-frontend)
+# Kaboome (kaboome-frontend)
 
 A Quasar Project
 
