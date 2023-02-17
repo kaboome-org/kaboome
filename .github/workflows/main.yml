@@ -1,0 +1,27 @@
+name: Build Quasar
+on: [push]
+jobs:
+  build_vue:
+    runs-on: ubuntu-latest
+    name: Build Quasar
+    steps:
+    - uses: actions/checkout@v3
+    - name: Build Quasar
+      run: |
+            yarn global add @quasar/cli
+            cd frontend
+            sed -i "s|/-/|/kaboome/|g" quasar.config.js
+            yarn install --frozen-lockfile
+            quasar build
+            cd dist/spa
+            git config --global user.email "CI@example.com"
+            git config --global user.name "CI"
+            git init
+            git add -A
+            git commit -m 'Update Github Pages'
+            echo "${{ secrets.DEPLOY_KEY }}" > deploy_key
+            chmod 600 deploy_key
+            git push -f git@github.com:kaboome-org/kaboome.git master:gh-pages
+      env:
+        GIT_SSH_COMMAND: 'ssh -i "./deploy_key"'
+      shell: bash
