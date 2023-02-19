@@ -9,6 +9,7 @@ function couchDocToFullcalendarEvent(doc) {
     extendedProps: {
       description: doc.Description,
       innerData: doc.innerData,
+      isTask: doc.isTask ?? false,
       rev: doc._rev,
     },
   };
@@ -22,6 +23,7 @@ function fullcalendarEventToCouchDoc(fullcalendarEvent) {
     EndTimestamp: Number(fullcalendarEvent.end),
     Description: fullcalendarEvent.extendedProps?.description,
     innerData: fullcalendarEvent.extendedProps?.innerData,
+    isTask: fullcalendarEvent.extendedProps?.isTask,
   };
 }
 

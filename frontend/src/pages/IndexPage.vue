@@ -45,6 +45,10 @@
                   outlined
                 />
               </div>
+              <q-checkbox
+                v-model="eventForm.extendedProps.isTask"
+                label="Task"
+              />
             </q-card-section>
             <q-card-actions align="right">
               <q-btn
@@ -131,6 +135,7 @@ export default defineComponent({
         extendedProps: {
           description: eventToOpen.extendedProps?.description,
           rev: eventToOpen.extendedProps?.rev,
+          isTask: eventToOpen.extendedProps?.isTask,
           //innerData: eventToOpen.extendedProps.innerData,
         },
       };
@@ -148,6 +153,11 @@ export default defineComponent({
         title: "New Event",
         start: selectionInfo.start,
         end: selectionInfo.end,
+        extendedProps: {
+          description: "",
+          isTask: false,
+          //innerData: eventToOpen.extendedProps.innerData,
+        },
       });
     };
     this.calendarOptions.eventClick = (arg) => {

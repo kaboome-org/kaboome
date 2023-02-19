@@ -38,6 +38,14 @@
             v-on:click="logOut()"
           />
         </div>
+        <q-btn
+          flat
+          dense
+          round
+          icon="task_alt"
+          aria-label="Menu"
+          @click="toggleRightDrawer"
+        />
       </q-toolbar>
     </q-header>
 
@@ -46,6 +54,12 @@
         <q-item-label header> Configuration </q-item-label>
 
         <GoogleCalendarManager v-if="this.login.isLoggedIn" />
+      </q-list>
+    </q-drawer>
+    <q-drawer v-model="rightDrawerOpen" bordered side="right">
+      <q-list>
+        <q-item-label header> Tasks </q-item-label>
+        <TaskList />
       </q-list>
     </q-drawer>
 
@@ -59,22 +73,29 @@
 import { defineComponent, ref } from "vue";
 import GoogleCalendarManager from "components/GoogleCalendarManager.vue";
 import { loginStore } from "../stores/login.js";
+import TaskList from "src/components/TaskList.vue";
 
 export default defineComponent({
   name: "MainLayout",
 
   components: {
     GoogleCalendarManager,
+    TaskList,
   },
   setup() {
     const leftDrawerOpen = ref(false);
+    const rightDrawerOpen = ref(false);
     const login = loginStore();
 
     return {
       login,
       leftDrawerOpen,
+      rightDrawerOpen,
       toggleLeftDrawer() {
         leftDrawerOpen.value = !leftDrawerOpen.value;
+      },
+      toggleRightDrawer() {
+        rightDrawerOpen.value = !rightDrawerOpen.value;
       },
       logOut: () => login.logOut(),
     };
