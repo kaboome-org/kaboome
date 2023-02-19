@@ -2,6 +2,9 @@
 
 Kaboome is a revolutionary new time blocking application that aims to improve the way people manage their time and increase productivity. Our unique approach combines gamification with a strong community aspect to help users stay motivated and on track.
 
+You can try a frontend-only version here:
+https://kaboome-org.github.io/kaboome/#/
+
 ## Installation and Configuration
 
 ### Preparation: Google Project
