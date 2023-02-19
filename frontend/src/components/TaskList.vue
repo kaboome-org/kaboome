@@ -1,7 +1,13 @@
 <template>
   <q-btn v-on:click="reschedule()"> Reschedule </q-btn>
   <q-checkbox v-model="showDone">Show Done</q-checkbox>
-  <draggable v-model="tasks" tag="ul" handle=".handle" v-on:change="reorder()">
+  <draggable
+    v-model="tasks"
+    tag="ul"
+    handle=".handle"
+    v-on:change="reorder()"
+    itemKey="id"
+  >
     <template #item="{ element }">
       <div v-if="!element.extendedProps.isDone || showDone">
         <q-icon name="menu" class="handle"></q-icon>
