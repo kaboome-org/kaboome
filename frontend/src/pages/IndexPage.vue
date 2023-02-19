@@ -49,6 +49,10 @@
                 v-model="eventForm.extendedProps.isTask"
                 label="Task"
               />
+              <q-checkbox
+                v-model="eventForm.extendedProps.isDone"
+                label="Done"
+              />
             </q-card-section>
             <q-card-actions align="right">
               <q-btn
@@ -89,7 +93,7 @@ export default defineComponent({
       plugins: [timeGridPlugin, interactionPlugin],
       initialView: "timeGridWeek",
       firstDay: new Date().getDay() - 1,
-      scrollTime: new Date(new Date() - 7200000).toLocaleTimeString(),
+      scrollTime: new Date(new Date() - 3600000).toLocaleTimeString(),
       editable: true,
       selectable: true,
       displayEventTime: false, // don't show the time column in list view
@@ -97,6 +101,7 @@ export default defineComponent({
       slotLabelInterval: "01:00:00",
       nowIndicator: true,
       allDaySlot: false,
+      height: "90vh",
     };
     return {
       calendar,
@@ -136,6 +141,7 @@ export default defineComponent({
           description: eventToOpen.extendedProps?.description,
           rev: eventToOpen.extendedProps?.rev,
           isTask: eventToOpen.extendedProps?.isTask,
+          isDone: eventToOpen.extendedProps?.isDone,
           //innerData: eventToOpen.extendedProps.innerData,
         },
       };
@@ -156,6 +162,7 @@ export default defineComponent({
         extendedProps: {
           description: "",
           isTask: false,
+          isDone: false,
           //innerData: eventToOpen.extendedProps.innerData,
         },
       });
