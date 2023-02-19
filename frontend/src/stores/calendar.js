@@ -10,8 +10,10 @@ function couchDocToFullcalendarEvent(doc) {
       description: doc.Description,
       innerData: doc.innerData,
       isTask: doc.isTask ?? false,
+      isDone: doc.isDone ?? false,
       rev: doc._rev,
     },
+    backgroundColor: doc.isDone ? "#21BA45" : "#1976d2",
   };
 }
 function fullcalendarEventToCouchDoc(fullcalendarEvent) {
@@ -24,6 +26,7 @@ function fullcalendarEventToCouchDoc(fullcalendarEvent) {
     Description: fullcalendarEvent.extendedProps?.description,
     innerData: fullcalendarEvent.extendedProps?.innerData,
     isTask: fullcalendarEvent.extendedProps?.isTask,
+    isDone: fullcalendarEvent.extendedProps?.isDone,
   };
 }
 
