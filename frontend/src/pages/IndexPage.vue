@@ -69,7 +69,11 @@
       </div>
     </q-dialog>
     <div style="width: 100%">
-      <FullCalendar :options="calendarOptions" ref="fullcalendar" />
+      <FullCalendar
+        :options="calendarOptions"
+        ref="fullcalendar"
+        :key="rerender"
+      />
     </div>
   </q-page>
 </template>
@@ -109,6 +113,16 @@ export default defineComponent({
       eventEditDialogueOpen: ref(false),
       login,
       calendarOptions,
+      rerender: ref(false),
+      zoomLevelIndex: 0,
+      zoomLevels: [
+        "00:05:00",
+        "00:10:00",
+        "00:15:00",
+        "00:20:00",
+        "00:30:00",
+        "01:00:00",
+      ],
     };
   },
   mounted() {
@@ -127,6 +141,35 @@ export default defineComponent({
       successCallback(
         await instance.calendar.events(info.start.valueOf(), info.end.valueOf())
       );
+    };
+    this.calendarOptions.customButtons = {
+      zoomout: {
+        text: "-",
+        click: function () {
+          if (instance.zoomLevelIndex < instance.zoomLevels.length - 1) {
+            instance.zoomLevelIndex++;
+            instance.calendarOptions.slotDuration =
+              instance.zoomLevels[instance.zoomLevelIndex];
+            instance.rerender = !instance.rerender;
+          }
+        },
+      },
+      zoomin: {
+        text: "+",
+        click: function () {
+          if (instance.zoomLevelIndex > 0) {
+            instance.zoomLevelIndex--;
+            instance.calendarOptions.slotDuration =
+              instance.zoomLevels[instance.zoomLevelIndex];
+            instance.rerender = !instance.rerender;
+          }
+        },
+      },
+    };
+    this.calendarOptions.headerToolbar = {
+      right: "prev,next today",
+      center: "title",
+      left: "zoomout zoomin",
     };
     function editEvent(changedEvent) {
       instance.calendar.put(changedEvent);
