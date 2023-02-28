@@ -28,8 +28,8 @@ import { loginStore } from "../stores/login.js";
 export default {
   setup() {
     return {
-      username: "",
-      password: "",
+      username: ref(""),
+      password: ref(""),
       alert: ref(false),
       alertText: "",
     };
