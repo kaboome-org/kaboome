@@ -175,7 +175,7 @@ export default defineComponent({
       instance.calendar.put(changedEvent);
     }
     function openModal(eventToOpen) {
-      instance.eventForm = {
+      instance.eventForm = ref({
         id: eventToOpen.id,
         title: eventToOpen.title,
         start: eventToOpen.start,
@@ -187,7 +187,7 @@ export default defineComponent({
           isDone: eventToOpen.extendedProps?.isDone,
           //innerData: eventToOpen.extendedProps.innerData,
         },
-      };
+      });
       instance.eventEditDialogueOpen = true;
     }
     this.calendarOptions.eventResize = (eventResizeInfo) => {
