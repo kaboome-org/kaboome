@@ -14,7 +14,7 @@ services:
       context: .
       dockerfile: KaboomeBackend/Dockerfile
   couchdb:
-    image: couchdb:latest
+    image: docker.io/couchdb:latest
     volumes:
       - ./database:/opt/couchdb/data
       - ./config:/opt/couchdb/etc/local.d
