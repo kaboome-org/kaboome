@@ -5,7 +5,7 @@ COPY ./ .
 RUN yarn install
 RUN quasar build
 
-FROM nginx:stable-alpine
+FROM docker.io/nginx:stable-alpine
 RUN mkdir /app
 COPY --from=build-stage /app/dist/spa /app
 COPY nginx/nginx.conf /etc/nginx/nginx.conf
