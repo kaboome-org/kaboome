@@ -13,6 +13,8 @@ services:
     build:
       context: .
       dockerfile: KaboomeBackend/Dockerfile
+    environment:
+      - KaboomeOptions__CouchDbAdminPassword=${COUCHDB_ADMIN_PASSWORD:-password}
   couchdb:
     image: docker.io/couchdb:latest
     volumes:
@@ -20,5 +22,5 @@ services:
       - ./config:/opt/couchdb/etc/local.d
     environment:
       - COUCHDB_USER=admin
-      - COUCHDB_PASSWORD=password
+      - COUCHDB_PASSWORD=${COUCHDB_ADMIN_PASSWORD:-password}
 
