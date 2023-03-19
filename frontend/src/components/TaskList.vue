@@ -23,6 +23,7 @@
 import { ref } from "vue";
 import draggable from "vuedraggable";
 import { calendarStore } from "../stores/calendar.js";
+import { schedule } from "../schedulers/simpleScheduler";
 
 export default {
   setup() {
@@ -51,9 +52,10 @@ export default {
     },
     reorder() {
       this.calendar.events().then((res) => {
-        this.schedule(
+        schedule(
           this.tasks.filter((r) => !r.extendedProps.isDone),
-          res.filter((r) => !r.extendedProps.isTask)
+          res.filter((r) => !r.extendedProps.isTask),
+          this.calendar
         );
       });
     },
@@ -62,42 +64,11 @@ export default {
         const tasksToReschedule = res
           .filter((r) => r.extendedProps.isTask && !r.extendedProps.isDone)
           .sort((a, b) => a.start - b.start);
-        this.schedule(
+        schedule(
           tasksToReschedule,
-          res.filter((r) => !r.extendedProps.isTask)
+          res.filter((r) => !r.extendedProps.isTask),
+          this.calendar
         );
-      });
-    },
-    schedule(tasksToReschedule, blockers) {
-      const minuteRounder = (t) => {
-        const fiveMinutes = 5 * 60 * 1000;
-        return t - (t % fiveMinutes) + fiveMinutes;
-      };
-      let potentialStart = minuteRounder(new Date());
-      blockers.sort((a, b) => a.start - b.start);
-      let blockerindex = 0;
-      tasksToReschedule.forEach((task) => {
-        const taskDuration = task.end - task.start;
-        while (
-          blockerindex < blockers.length &&
-          (blockers[blockerindex].end < potentialStart ||
-            blockers[blockerindex].start - potentialStart < taskDuration)
-        ) {
-          if (
-            blockerindex < blockers.length &&
-            ((blockers[blockerindex].end >= potentialStart &&
-              blockers[blockerindex].start <= potentialStart) ||
-              (blockers[blockerindex].end >= potentialStart + taskDuration &&
-                blockers[blockerindex].start <= potentialStart + taskDuration))
-          ) {
-            potentialStart = minuteRounder(blockers[blockerindex].end);
-          }
-          blockerindex++;
-        }
-        task.start = potentialStart;
-        task.end = potentialStart + taskDuration;
-        potentialStart = minuteRounder(task.end);
-        this.calendar.put(task);
       });
     },
   },
