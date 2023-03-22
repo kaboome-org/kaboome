@@ -15,8 +15,8 @@ jobs:
             cd frontend
             sed -i "s|/-/|/kaboome/|g" quasar.config.js
             yarn install --frozen-lockfile
-            quasar build
-            cd dist/spa
+            quasar build -m pwa
+            cd dist/pwa
             git config --global user.email "CI@example.com"
             git config --global user.name "CI"
             git init
