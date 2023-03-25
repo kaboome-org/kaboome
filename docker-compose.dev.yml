@@ -1,0 +1,19 @@
+version: '3.4'
+
+services:
+  couchdb:
+    image: couchdb:latest
+    ports:
+      - "5984:5984"
+    volumes:
+      - ./database:/opt/couchdb/data
+      - ./config:/opt/couchdb/etc/local.d
+    environment:
+      - COUCHDB_USER=admin
+      - COUCHDB_PASSWORD=password
+  reverseproxy:
+    image: nginx
+    volumes:
+      - ./nginx-dev:/etc/nginx/
+    ports:
+      - 8000:8000

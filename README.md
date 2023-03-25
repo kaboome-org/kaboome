@@ -33,3 +33,30 @@ Then clone this repository:
 4. If you intend to use Let's encrypt certificates and an automatic certificate renew follow https://mindsers.blog/post/https-using-nginx-certbot-docker/
 If you already have certificates, mount them as a volume on the frontend service and modify the frontend/nginx/nginx.conf accordingly.
 5. Run `docker-compose up -d`. After some seconds try accessing the server at port 8000. http://localhost:8000/- or depending on your server_name in the nginx.conf: https://${server_name}/-
+
+## Development
+
+### Frontend only development
+
+Navigate to the `./frontend` folder and execute `quasar dev`.
+This should host a frontend at http://localhost:8000/-/.
+If you need a different port change the `devServer.port` in `./frontend/quasar.config.js.`
+
+### Backend only deployment
+
+The backend needs some CouchDB server for most of its features and as it also uses hooks into the cookie authentification of CouchDB, it needs to be hosted at the same URL, so the users browser sends the cookie.
+This is achieved through a reverse proxy nginx.
+Both of these systems can be deployed through `docker compose -f .\docker-compose.dev.yml up`.
+Now use `dotnet run` inside the `./KaboomeBackend` folder.
+This should host the backend at http://localhost:5118/.
+If you want to use different ports, you can configure this in `./nginx-dev/nginx.conf`.
+
+Be sure to access the backend through the reverse proxy at http://localhost:8000/backend.
+
+## Full dev deployment
+
+Follow the steps above.
+The development nginx is already configured to route requests to the frontend.
+Change the `devServer.port` in `./frontend/quasar.config.js.` to 9000 and run `quasar dev`.
+The port is left on 8000 in the repo, because we sometimes use a full deployment and at other times a frontend only deployment.
+We want these two deployment types to share the same URL so we have the same data in the frontend.
