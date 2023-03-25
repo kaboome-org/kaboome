@@ -30,11 +30,11 @@ describe("schedule method tests", () => {
       {
         id: 1,
         start: new Date(),
-        end: new Date() + 60000,
+        end: new Date().valueOf() + 60000,
         extendedProps: { isTask: true, isDone: false },
       },
     ];
-    schedule(tasks, [], { put: (_) => {} });
+    schedule(tasks, blockers, { put: (_) => {} });
     expect(tasks[0].start - new Date()).toBeGreaterThanOrEqual(60000);
   });
 });

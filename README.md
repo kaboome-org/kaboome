@@ -53,7 +53,7 @@ If you want to use different ports, you can configure this in `./nginx-dev/nginx
 
 Be sure to access the backend through the reverse proxy at http://localhost:8000/backend.
 
-## Full dev deployment
+### Full dev deployment
 
 Follow the steps above.
 The development nginx is already configured to route requests to the frontend.
