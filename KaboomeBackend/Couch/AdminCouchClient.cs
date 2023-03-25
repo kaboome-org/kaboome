@@ -96,7 +96,11 @@ namespace KaboomeBackend.Couch
         {
             using var userclient = new MyCouchClient(this.connectionUrl, $"_users");
             var user = new { type = "user", name, roles = new[] { "kaboome" }, password };
-            await userclient.Documents.PutAsync($"org.couchdb.user:{name}", JsonConvert.SerializeObject(user));
+            var res = await userclient.Documents.PutAsync($"org.couchdb.user:{name}", JsonConvert.SerializeObject(user));
+            if (!res.IsSuccess)
+            {
+                throw new Exception("User creation failed. Try a different username.");
+            }
         }
 
         private async Task<MyCouchClient> CreateDb(string name)
