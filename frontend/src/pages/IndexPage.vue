@@ -82,16 +82,26 @@
 import { defineComponent, ref } from "vue";
 import { loginStore } from "../stores/login.js";
 import { calendarStore } from "../stores/calendar.js";
+import { useLocalStorage } from "@vueuse/core";
 import FullCalendar from "@fullcalendar/vue3";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
 
+const zoomLevels = [
+  "00:05:00",
+  "00:10:00",
+  "00:15:00",
+  "00:20:00",
+  "00:30:00",
+  "01:00:00",
+];
 export default defineComponent({
   name: "IndexPage",
   setup() {
     const login = loginStore();
     const calendar = calendarStore();
     calendar.activateSync(login.user);
+    const zoomLevelIndex = useLocalStorage("zoomLevelIndex", 0);
 
     const calendarOptions = {
       plugins: [timeGridPlugin, interactionPlugin],
@@ -101,7 +111,7 @@ export default defineComponent({
       editable: true,
       selectable: true,
       displayEventTime: false, // don't show the time column in list view
-      slotDuration: "00:05:00",
+      slotDuration: zoomLevels[zoomLevelIndex.value],
       slotLabelInterval: "01:00:00",
       nowIndicator: true,
       allDaySlot: false,
@@ -114,15 +124,8 @@ export default defineComponent({
       login,
       calendarOptions,
       rerender: ref(false),
-      zoomLevelIndex: 0,
-      zoomLevels: [
-        "00:05:00",
-        "00:10:00",
-        "00:15:00",
-        "00:20:00",
-        "00:30:00",
-        "01:00:00",
-      ],
+      zoomLevelIndex,
+      zoomLevels,
     };
   },
   mounted() {
