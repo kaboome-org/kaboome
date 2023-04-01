@@ -1,9 +1,9 @@
 <template>
   <q-page class="flex flex-center">
     <q-dialog v-model="eventEditDialogueOpen" no-backdrop-dismiss>
-      <div>
+      <div style="width:100%; min-width: 200px; max-width: 400px;">
         <q-form @submit="onSubmit(eventForm)">
-          <q-card v-if="eventEditDialogueOpen" style="width: 400px">
+          <q-card v-if="eventEditDialogueOpen">
             <q-toolbar class="bg-primary text-white">
               <q-toolbar-title> Event Editor </q-toolbar-title>
               <q-btn
