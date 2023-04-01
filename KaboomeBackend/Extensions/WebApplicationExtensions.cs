@@ -104,7 +104,7 @@ namespace KaboomeBackend.Extensions
                     };
                     var service = new CalendarService(initializer);
                     var calendars = (await service.CalendarList.List().ExecuteAsync()).Items;
-                    ret.Add(calendars[0].Id, calendars);
+                    ret.Add(calendars.FirstOrDefault(c => c.Primary == true, calendars[0]).Id, calendars);
                 }
                 return JsonConvert.SerializeObject(ret);
             });
