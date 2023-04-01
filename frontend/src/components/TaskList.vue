@@ -46,7 +46,7 @@ export default {
     fetchTasks() {
       this.calendar.events().then((res) => {
         this.tasks = res
-          .filter((r) => r.extendedProps.isTask)
+          .filter((r) => r.extendedProps.eventType === "Task")
           .sort((a, b) => a.start - b.start);
       });
     },
@@ -54,7 +54,7 @@ export default {
       this.calendar.events().then((res) => {
         schedule(
           this.tasks.filter((r) => !r.extendedProps.isDone),
-          res.filter((r) => !r.extendedProps.isTask),
+          res.filter((r) => r.extendedProps.eventType !== "Task"),
           this.calendar
         );
       });
@@ -62,11 +62,11 @@ export default {
     reschedule() {
       this.calendar.events().then((res) => {
         const tasksToReschedule = res
-          .filter((r) => r.extendedProps.isTask && !r.extendedProps.isDone)
+          .filter((r) => r.extendedProps.eventType === "Task" && !r.extendedProps.isDone)
           .sort((a, b) => a.start - b.start);
         schedule(
           tasksToReschedule,
-          res.filter((r) => !r.extendedProps.isTask),
+          res.filter((r) => r.extendedProps.eventType !== "Task"),
           this.calendar
         );
       });

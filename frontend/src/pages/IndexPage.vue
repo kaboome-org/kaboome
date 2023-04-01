@@ -45,8 +45,10 @@
                   outlined
                 />
               </div>
-              <q-checkbox
-                v-model="eventForm.extendedProps.isTask"
+              <q-select
+                filled
+                v-model="eventForm.extendedProps.eventType"
+                :options="eventTypeOptions"
                 label="Task"
               />
               <q-checkbox
@@ -126,6 +128,7 @@ export default defineComponent({
       rerender: ref(false),
       zoomLevelIndex,
       zoomLevels,
+      eventTypeOptions: ["Event", "Task", "Habit"]
     };
   },
   mounted() {
@@ -186,7 +189,7 @@ export default defineComponent({
         extendedProps: {
           description: eventToOpen.extendedProps?.description,
           rev: eventToOpen.extendedProps?.rev,
-          isTask: eventToOpen.extendedProps?.isTask,
+          eventType: eventToOpen.extendedProps?.eventType,
           isDone: eventToOpen.extendedProps?.isDone,
           //innerData: eventToOpen.extendedProps.innerData,
         },
@@ -207,7 +210,7 @@ export default defineComponent({
         end: selectionInfo.end,
         extendedProps: {
           description: "",
-          isTask: false,
+          eventType: "Event",
           isDone: false,
           //innerData: eventToOpen.extendedProps.innerData,
         },

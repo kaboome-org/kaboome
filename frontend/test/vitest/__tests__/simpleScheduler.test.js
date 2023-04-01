@@ -7,7 +7,6 @@ describe("schedule method tests", () => {
       {
         start: new Date(2023, 3, 1, 9, 0),
         end: new Date(2023, 3, 1, 10, 0),
-        extendedProps: { isTask: true, isDone: false },
         commited: false,
       },
     ];
@@ -23,7 +22,6 @@ describe("schedule method tests", () => {
         id: 1,
         start: new Date(2023, 3, 1, 9, 0),
         end: new Date(2023, 3, 1, 10, 0),
-        extendedProps: { isTask: true, isDone: false },
       },
     ];
     const blockers = [
@@ -31,7 +29,6 @@ describe("schedule method tests", () => {
         id: 1,
         start: new Date(),
         end: new Date().valueOf() + 60000,
-        extendedProps: { isTask: true, isDone: false },
       },
     ];
     schedule(tasks, blockers, { put: (_) => {} });

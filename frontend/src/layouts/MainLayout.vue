@@ -83,7 +83,7 @@
     </q-drawer>
     <q-drawer v-model="rightDrawerOpen" bordered side="right">
       <q-list>
-        <q-item-label header> Tasks </q-item-label>
+        <q-item-label header> Tasks & Habits </q-item-label>
         <TaskList />
       </q-list>
     </q-drawer>
