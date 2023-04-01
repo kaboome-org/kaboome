@@ -1,11 +1,18 @@
 <template>
   <q-page class="flex flex-center">
     <q-dialog v-model="eventEditDialogueOpen" no-backdrop-dismiss>
-      <div style="width:100%; min-width: 200px; max-width: 400px;">
+      <div style="width: 100%; min-width: 200px; max-width: 600px">
         <q-form @submit="onSubmit(eventForm)">
           <q-card v-if="eventEditDialogueOpen">
             <q-toolbar class="bg-primary text-white">
               <q-toolbar-title> Event Editor </q-toolbar-title>
+              <q-checkbox
+                v-model="eventForm.extendedProps.isDone"
+                label="Done"
+                color="positive"
+                dark
+                class="q-mr-md"
+              />
               <q-btn
                 flat
                 round
@@ -14,46 +21,155 @@
                 v-close-popup
                 @click="deleteEvent(eventForm)"
               ></q-btn>
-              <q-btn
-                flat
-                round
-                color="white"
-                icon="close"
-                v-close-popup
-              ></q-btn>
             </q-toolbar>
             <q-card-section class="inset-shadow">
-              <q-input v-model="eventForm.title" label="Title" autofocus />
+              <q-input
+                v-model="eventForm.title"
+                label="Title"
+                autofocus
+                standout="bg-blue-grey-1"
+                class="q-mb-sm q-input-dark"
+                color="black"
+                dense
+                />
+                <div class="row items-center q-my-sm">
+                  <q-icon name="schedule" color="primary" size="32px" class="q-mr-sm" />
+
+                  <div class="col-3 q-mt-md">
+                    <q-input
+                      v-model="eventForm.start"
+                      ref="dateStart"
+                      label="Event start date"
+                      color="blue-6"
+                      mask="date"
+                      :rules="['date']"
+                      standout="bg-blue-grey-1"
+                      dense
+                      class="q-input-dark"
+                    >
+                      <template v-slot:append>
+                        <q-icon name="event" class="cursor-pointer">
+                          <q-popup-proxy cover transition-show="scale" transition-hide="scale" ref="qDateStartProxy">
+                            <q-date v-model="eventForm.start" today-btn @update:model-value="$refs.qDateStartProxy.hide()">
+                              <div class="row items-center justify-end">
+                                <q-btn v-close-popup label="OK" color="primary" flat />
+                              </div>
+                            </q-date>
+                          </q-popup-proxy>
+                        </q-icon>
+                      </template>
+                    </q-input>
+                  </div>
+                  <div class="col-2 q-mt-md">
+                    <q-input
+                      v-model="eventForm.startTime"
+                      ref="timeStart"
+                      label="Event start time"
+                      color="blue-6"
+                      mask="time"
+                      :rules="['time']"
+                      class="q-ml-sm q-input-dark"
+                      standout="bg-blue-grey-1"
+                      dense
+                    >
+                      <template v-slot:append>
+                        <q-icon name="access_time" class="cursor-pointer">
+                          <q-popup-proxy cover transition-show="scale" transition-hide="scale">
+                              <q-time v-model="eventForm.startTime" >
+                                  <div class="row items-center justify-end">
+                                  <q-btn v-close-popup label="Select" color="primary" flat />
+                                </div>
+                              </q-time>
+                            </q-popup-proxy>
+                          </q-icon>
+                      </template>
+                    </q-input>
+                  </div>
+
+                  <label class="q-mx-sm">to</label>
+
+
+                  <div class="col-2 q-mt-md">
+                  <q-input
+                    v-model="eventForm.endTime"
+                    ref="timeEnd"
+                    label="Event end time"
+                    color="blue-6"
+                    mask="time"
+                    :rules="['time']"
+                    class="q-mr-sm q-input-dark"
+                    standout="bg-blue-grey-1"
+                    dense
+                  >
+                    <template v-slot:append>
+                      <q-icon name="access_time" class="cursor-pointer">
+                        <q-popup-proxy cover transition-show="scale" transition-hide="scale" >
+                            <q-time v-model="eventForm.endTime" >
+                                <div class="row items-center justify-end">
+                                <q-btn v-close-popup label="Select" color="primary" flat />
+                              </div>
+                            </q-time>
+                          </q-popup-proxy>
+                        </q-icon>
+                    </template>
+                  </q-input>
+                </div>
+                  <div class="col-3 q-mt-md">
+                  <q-input
+                    v-model="eventForm.end"
+                    ref="dateTimeEnd"
+                    label="Event end date"
+                    color="blue-6"
+                    mask="date"
+                    :rules="['date']"
+                    standout="bg-blue-grey-1"
+                    dense
+                    class="q-input-dark"
+                  >
+                  <template v-slot:append>
+                    <q-icon name="event" class="cursor-pointer">
+                      <q-popup-proxy cover transition-show="scale" transition-hide="scale" ref="qDateEndProxy">
+                        <q-date v-model="eventForm.end" today-btn @update:model-value="$refs.qDateEndProxy.hide()">
+                          <div class="row items-center justify-end">
+                            <q-btn v-close-popup label="Select" color="primary" flat />
+                          </div>
+                        </q-date>
+                      </q-popup-proxy>
+                    </q-icon>
+                  </template>
+                </q-input>
+                </div>
+              </div>
+
+              <div class="row items-center q-mb-md">
+                <q-icon name="fmd_good" color="primary" size="32px" class="q-mr-sm"/>
+                <div class="col-11">
+                  <q-input
+                    v-model="eventForm.extendedProps.place"
+                    standout="bg-blue-grey-1"
+                    label="Place"
+                    class="q-input-dark"
+                    style="width: auto;"
+                    dense
+                    />
+                </div>
+              </div>
+
+
               <q-input
                 v-model="eventForm.extendedProps.description"
                 label="Description"
+                standout="bg-blue-grey-1"
+                autogrow
+                class="q-mb-md q-input-dark"
               />
-              <div>
-                <q-input
-                  v-model="eventForm.start"
-                  ref="dateTimeStart"
-                  label="Event start date and time"
-                  outlined
-                  color="blue-6"
-                />
 
-                <q-input
-                  v-model="eventForm.end"
-                  ref="dateTimeEnd"
-                  label="Event end date and time"
-                  color="blue-6"
-                  outlined
-                />
-              </div>
               <q-select
                 filled
                 v-model="eventForm.extendedProps.eventType"
                 :options="eventTypeOptions"
-                label="Task"
-              />
-              <q-checkbox
-                v-model="eventForm.extendedProps.isDone"
-                label="Done"
+                label="Event type"
+                class="q-mb-sm"
               />
             </q-card-section>
             <q-card-actions align="right">
@@ -81,13 +197,14 @@
 </template>
 
 <script>
-import { defineComponent, ref } from "vue";
+import { defineComponent, ref, reactive } from "vue";
 import { loginStore } from "../stores/login.js";
 import { calendarStore } from "../stores/calendar.js";
 import { useLocalStorage } from "@vueuse/core";
 import FullCalendar from "@fullcalendar/vue3";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
+import { date } from 'quasar';
 
 const zoomLevels = [
   "00:05:00",
@@ -128,7 +245,7 @@ export default defineComponent({
       rerender: ref(false),
       zoomLevelIndex,
       zoomLevels,
-      eventTypeOptions: ["Event", "Task", "Habit"]
+      eventTypeOptions: ["Event", "Task", "Habit"],
     };
   },
   mounted() {
@@ -181,11 +298,13 @@ export default defineComponent({
       instance.calendar.put(changedEvent);
     }
     function openModal(eventToOpen) {
-      instance.eventForm = ref({
+      instance.eventForm = reactive({
         id: eventToOpen.id,
         title: eventToOpen.title,
-        start: eventToOpen.start,
-        end: eventToOpen.end,
+        start: date.formatDate(eventToOpen.start, 'YYYY/MM/DD'),
+        startTime: date.formatDate(eventToOpen.start, 'HH:mm'),
+        end: date.formatDate(eventToOpen.end, 'YYYY/MM/DD'),
+        endTime:  date.formatDate(eventToOpen.end, 'HH:mm'),
         extendedProps: {
           description: eventToOpen.extendedProps?.description,
           rev: eventToOpen.extendedProps?.rev,
@@ -194,6 +313,8 @@ export default defineComponent({
           //innerData: eventToOpen.extendedProps.innerData,
         },
       });
+      console.log(eventToOpen)
+      console.log(instance.eventForm)
       instance.eventEditDialogueOpen = true;
     }
     this.calendarOptions.eventResize = (eventResizeInfo) => {
@@ -238,11 +359,20 @@ export default defineComponent({
   },
   methods: {
     deleteEvent(eventForm) {
+      console.log('yyyyy')
       this.calendar.delete(eventForm);
     },
     onSubmit(eventForm) {
+      console.log('xxxxxxxxxx');
+      console.log(eventForm);
+      eventForm.start = this.convertStringDateTimeToDateObject(eventForm.start, eventForm.startTime);
+      eventForm.end = this.convertStringDateTimeToDateObject(eventForm.end, eventForm.endTime);
+
       this.calendar.put(eventForm);
     },
+    convertStringDateTimeToDateObject(d, t){
+      return date.extractDate(d + " " + t, 'YYYY/MM/DD HH:mm');
+    }
   },
   components: { FullCalendar },
 });

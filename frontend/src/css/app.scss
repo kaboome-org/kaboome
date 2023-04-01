@@ -1,1 +1,9 @@
 // app global css in SCSS form
+
+.q-input{
+  &-dark{
+    input, textarea {
+      color: $grey-9 !important;
+    }
+  }
+}

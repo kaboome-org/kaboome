@@ -97,6 +97,7 @@ module.exports = configure(function (/* ctx */) {
       //
       // components: [],
       // directives: [],
+      cssAddon: true,
 
       // Quasar plugins
       plugins: [],
