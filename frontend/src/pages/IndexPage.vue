@@ -313,8 +313,6 @@ export default defineComponent({
           //innerData: eventToOpen.extendedProps.innerData,
         },
       });
-      console.log(eventToOpen)
-      console.log(instance.eventForm)
       instance.eventEditDialogueOpen = true;
     }
     this.calendarOptions.eventResize = (eventResizeInfo) => {
@@ -359,12 +357,9 @@ export default defineComponent({
   },
   methods: {
     deleteEvent(eventForm) {
-      console.log('yyyyy')
       this.calendar.delete(eventForm);
     },
     onSubmit(eventForm) {
-      console.log('xxxxxxxxxx');
-      console.log(eventForm);
       eventForm.start = this.convertStringDateTimeToDateObject(eventForm.start, eventForm.startTime);
       eventForm.end = this.convertStringDateTimeToDateObject(eventForm.end, eventForm.endTime);
 

@@ -67,14 +67,14 @@ export const calendarStore = defineStore("calendar", {
         document.location.origin + calendarDbName,
         calendarDbName,
         { live: true },
-        () => console.log("Sync error")
+        () => {/* Sync error */}
       )
         .on("denied", function () {
-          console.log("denied");
+          // denied
           this.syncing = false;
         })
         .on("error", function () {
-          console.log("error");
+          // error
           this.syncing = false;
         });
       this.syncing = true;

@@ -15,6 +15,7 @@ jobs:
             cd frontend
             sed -i "s|/-/|/kaboome/|g" quasar.config.js
             yarn install --frozen-lockfile
+            yarn lint
             yarn test:unit:ci
             quasar build -m pwa
             cd dist/pwa

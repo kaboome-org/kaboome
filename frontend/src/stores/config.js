@@ -16,11 +16,11 @@ export const configStore = defineStore("config", {
         () => console.log("Sync error")
       )
         .on("denied", function () {
-          console.log("denied");
+          // denied
           this.syncing = false;
         })
         .on("error", function () {
-          console.log("error");
+          // error
           this.syncing = false;
         });
       this.syncing = true;
