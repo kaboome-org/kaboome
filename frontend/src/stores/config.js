@@ -13,7 +13,7 @@ export const configStore = defineStore("config", {
         document.location.origin + configDbName,
         configDbName,
         { live: true },
-        () => console.log("Sync error")
+        () =>{/* Sync error */}
       )
         .on("denied", function () {
           // denied
