@@ -7,9 +7,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Google.Apis.Calendar.v3" Version="1.60.0.2759" />
-    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="7.0.3" />
+    <PackageReference Include="Google.Apis.Calendar.v3" Version="1.60.0.3004" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="7.0.4" />
     <PackageReference Include="MyCouch" Version="7.6.0" />
-  </ItemGroup>
+  </ItemGroup>  
 
 </Project>

@@ -28,7 +28,7 @@
   "devDependencies": {
     "@quasar/app-vite": "^1.0.0",
     "@quasar/quasar-app-extension-testing": "^2.1.0",
-    "@quasar/quasar-app-extension-testing-unit-vitest": "^0.1.0",
+    "@quasar/quasar-app-extension-testing-unit-vitest": "^0.2.1",
     "@vue/test-utils": "^2.0.0",
     "autoprefixer": "^10.4.2",
     "eslint": "^8.10.0",
