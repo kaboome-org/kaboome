@@ -267,7 +267,8 @@ export default {
         rev: this.eventToOpen.extendedProps?.rev,
         eventType: this.eventToOpen.extendedProps?.eventType,
         isDone: this.eventToOpen.extendedProps?.isDone,
-        //innerData: this.eventToOpen.extendedProps.innerData,
+        ReadWriteExternalEvent:
+          this.eventToOpen.extendedProps.ReadWriteExternalEvent,
       },
     });
   },

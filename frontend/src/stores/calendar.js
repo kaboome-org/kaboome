@@ -8,7 +8,7 @@ function couchDocToFullcalendarEvent(doc) {
     end: doc.EndTimestamp,
     extendedProps: {
       description: doc.Description,
-      innerData: doc.innerData,
+      ReadWriteExternalEvent: doc.ReadWriteExternalEvent,
       eventType: doc.eventType ?? "Event",
       isDone: doc.isDone ?? false,
       rev: doc._rev,
@@ -24,7 +24,8 @@ function fullcalendarEventToCouchDoc(fullcalendarEvent) {
     StartTimestamp: Number(fullcalendarEvent.start),
     EndTimestamp: Number(fullcalendarEvent.end),
     Description: fullcalendarEvent.extendedProps?.description,
-    innerData: fullcalendarEvent.extendedProps?.innerData,
+    ReadWriteExternalEvent:
+      fullcalendarEvent.extendedProps?.ReadWriteExternalEvent,
     eventType: fullcalendarEvent.extendedProps?.eventType,
     isDone: fullcalendarEvent.extendedProps?.isDone,
   };
@@ -67,7 +68,9 @@ export const calendarStore = defineStore("calendar", {
         document.location.origin + calendarDbName,
         calendarDbName,
         { live: true },
-        () => {/* Sync error */}
+        () => {
+          /* Sync error */
+        }
       )
         .on("denied", function () {
           // denied

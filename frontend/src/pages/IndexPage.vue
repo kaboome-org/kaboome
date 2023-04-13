@@ -137,7 +137,7 @@ export default defineComponent({
           description: "",
           eventType: "Event",
           isDone: false,
-          //innerData: eventToOpen.extendedProps.innerData,
+          ReadWriteExternalEvent: {},
         },
       });
     };
