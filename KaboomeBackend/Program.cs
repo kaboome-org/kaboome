@@ -22,7 +22,7 @@ builder.Services.AddSingleton(
 var app = builder.Build();
 
 app.UseRegistrationEndpoint();
-app.UseGoogleAuthEndpoints(kaboomeOptions.CouchDbUri);
+app.UseThirdPartyEndpoints(kaboomeOptions.CouchDbUri);
 
 app.UseHttpsRedirection();
 

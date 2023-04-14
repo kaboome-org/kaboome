@@ -18,17 +18,8 @@ namespace KaboomeBackend.Extensions
         private const string DeleteGoogleAccount = "/backend/delete-google-account";
         private const string RedirectTheUserIntoTheGoogleAuthFlow = "/backend/google-signin";
         private const string GoogleCalendarList = "/backend/google-calendar-list";
-        private const string GoogleSyncEvents = "/backend/google-sync-events";
         private const string YouCanCloseThisWindowNow = "<h1>You can close this window now</h1><script>window.close()</script>";
         private const string YouMustFirstAuthenticate = "<h1>You must first authenticate.</h1>";
-
-        private static long EventDateTimeToTimestamp(EventDateTime eventDateTime) =>
-            DateTimeOffset.Parse(eventDateTime.DateTimeRaw ?? eventDateTime.Date).ToUnixTimeMilliseconds();
-        private static EventDateTime TimestampToEventDateTime(long timestamp) => new EventDateTime
-        {
-            DateTime = DateTimeOffset.FromUnixTimeMilliseconds(timestamp).UtcDateTime,
-            TimeZone = "UTC"
-        };
 
         public static WebApplication UseRegistrationEndpoint(this WebApplication app)
         {
@@ -43,8 +34,9 @@ namespace KaboomeBackend.Extensions
             });
             return app;
         }
-        public static WebApplication UseGoogleAuthEndpoints(this WebApplication app, Uri couchDbUri)
+        public static WebApplication UseThirdPartyEndpoints(this WebApplication app, Uri couchDbUri)
         {
+            app.UseSyncEndpoint(couchDbUri);
             _ = app.MapGet(RedirectTheUserIntoTheGoogleAuthFlow, async (HttpRequest req, HttpResponse res, GoogleAuthorizationCodeFlow flow) =>
             {
                 var kaboomeUsername = await AuthHelper.GetAndValidateUsername(req, couchDbUri);
@@ -107,127 +99,6 @@ namespace KaboomeBackend.Extensions
                     ret.Add(calendars.FirstOrDefault(c => c.Primary == true, calendars[0]).Id, calendars);
                 }
                 return JsonConvert.SerializeObject(ret);
-            });
-            _ = app.MapPost(GoogleSyncEvents, async (HttpRequest req, GoogleAuthorizationCodeFlow flow, AdminCouchClient client, GoogleCalendarPath googleCalendarPath) =>
-            {
-                var kaboomeUsername = await AuthHelper.GetAndValidateUsername(req, couchDbUri);
-                if (kaboomeUsername == null)
-                {
-                    return YouMustFirstAuthenticate;
-                }
-
-                var key = $"google-{googleCalendarPath.GoogleAccountId}";
-                var usersecrets = await client.GetUserSecrets(kaboomeUsername, key);
-                var userSecret = JsonConvert.DeserializeObject<UserSecret>(usersecrets.First());
-                var userConfigDoc = await client.GetUserConfig(kaboomeUsername, key);
-                var userConfig = JsonConvert.DeserializeObject<UserConfigDoc>(userConfigDoc);
-
-                var initializer = new BaseClientService.Initializer
-                {
-                    HttpClientInitializer = new UserCredential(flow,
-                "user", new Google.Apis.Auth.OAuth2.Responses.TokenResponse
-                {
-                    RefreshToken = userSecret.RefreshToken
-                })
-                };
-                var service = new CalendarService(initializer);
-                var idPrefix = $"{JsonConvert.SerializeObject(googleCalendarPath)}-";
-                //PUSH
-                foreach (var changeDoc in await client.GetEventChanges(kaboomeUsername, userConfig.Since))
-                {
-                    // Deserialize
-                    var kaboomeEvent = JsonConvert.DeserializeObject<KaboomeEvent>(changeDoc);
-                    if (kaboomeEvent._id.StartsWith(idPrefix, StringComparison.InvariantCulture))
-                    {
-                        var googleEventId = kaboomeEvent._id.Substring(idPrefix.Length);
-                        if (kaboomeEvent._deleted == true)
-                        {
-                            // Delete
-                            await service.Events.Delete(googleCalendarPath.GoogleCalendarId, googleEventId).ExecuteAsync();
-
-                        }
-                        else if (kaboomeEvent.ReadWriteExternalEvent?.Google?.Id != null)
-                        {
-                            // Update
-                            kaboomeEvent.ReadWriteExternalEvent.Google.Summary = kaboomeEvent.Title;
-                            kaboomeEvent.ReadWriteExternalEvent.Google.Description = kaboomeEvent.Description;
-                            kaboomeEvent.ReadWriteExternalEvent.Google.Start = TimestampToEventDateTime(kaboomeEvent.StartTimestamp);
-                            kaboomeEvent.ReadWriteExternalEvent.Google.End = TimestampToEventDateTime(kaboomeEvent.EndTimestamp);
-                            kaboomeEvent.ReadWriteExternalEvent.Google.CreatedRaw = kaboomeEvent.ReadWriteExternalEvent.Google.CreatedRaw.Replace("Z", ".000Z");
-                            await service.Events.Update(kaboomeEvent.ReadWriteExternalEvent.Google, googleCalendarPath.GoogleCalendarId, kaboomeEvent.ReadWriteExternalEvent.Google.Id).ExecuteAsync();
-                        }
-                        else
-                        {
-                            // Insert
-                            kaboomeEvent.ReadWriteExternalEvent.Google.Summary = kaboomeEvent.Title;
-                            kaboomeEvent.ReadWriteExternalEvent.Google.Description = kaboomeEvent.Description;
-                            kaboomeEvent.ReadWriteExternalEvent.Google.Start = TimestampToEventDateTime(kaboomeEvent.StartTimestamp);
-                            kaboomeEvent.ReadWriteExternalEvent.Google.End = TimestampToEventDateTime(kaboomeEvent.EndTimestamp);
-                            await service.Events.Insert(kaboomeEvent.ReadWriteExternalEvent.Google, googleCalendarPath.GoogleCalendarId).ExecuteAsync();
-                            // Will be added by pull sync again (with a correct event id generated by google)
-                            await client.DeleteKaboomeEvent(kaboomeUsername, kaboomeEvent._id, kaboomeEvent._rev);
-                        }
-                    }
-                }
-                //PULL
-                var listRequest = service.Events.List(googleCalendarPath.GoogleCalendarId);
-                listRequest.SyncToken = userConfig.GoogleSyncToken;
-                var syncToken = userConfig.GoogleSyncToken;
-                listRequest.ShowDeleted = true;
-                do
-                {
-                    var events = await listRequest.ExecuteAsync();
-                    foreach (var googleEvent in events.Items)
-                    {
-                        if (googleEvent.Status == "cancelled")
-                        {
-                            // Delete
-                            var toDeleteDoc = await client.GetKaboomeEvent(kaboomeUsername, $"{idPrefix}{googleEvent.Id}");
-                            if (toDeleteDoc != null)
-                            {
-                                var toDelete = JsonConvert.DeserializeObject<KaboomeEvent>(toDeleteDoc);
-                                await client.DeleteKaboomeEvent(kaboomeUsername, toDelete._id, toDelete._rev);
-                            }
-                        }
-                        else
-                        {
-                            var toUpdateDoc = await client.GetKaboomeEvent(kaboomeUsername, $"{idPrefix}{googleEvent.Id}");
-                            if (toUpdateDoc == null)
-                            {
-                                // Insert
-                                var kaboomeEvent = new KaboomeEventIn
-                                {
-                                    Description = googleEvent.Description,
-                                    Title = googleEvent.Summary,
-                                    StartTimestamp = EventDateTimeToTimestamp(googleEvent.Start),
-                                    EndTimestamp = EventDateTimeToTimestamp(googleEvent.End),
-                                };
-                                kaboomeEvent.ReadWriteExternalEvent.Google = googleEvent;
-                                await client.WriteKaboomeEvent(kaboomeUsername, $"{idPrefix}{googleEvent.Id}", JsonConvert.SerializeObject(kaboomeEvent));
-                            }
-                            else
-                            {
-                                // Update
-                                var kaboomeEvent = JsonConvert.DeserializeObject<KaboomeEvent>(toUpdateDoc);
-                                kaboomeEvent.Description = googleEvent.Description;
-                                kaboomeEvent.Title = googleEvent.Summary;
-                                kaboomeEvent.StartTimestamp = EventDateTimeToTimestamp(googleEvent.Start);
-                                kaboomeEvent.EndTimestamp = EventDateTimeToTimestamp(googleEvent.End);
-                                kaboomeEvent.ReadWriteExternalEvent.Google = googleEvent;
-                                await client.WriteKaboomeEvent(kaboomeUsername, kaboomeEvent._id, JsonConvert.SerializeObject(kaboomeEvent));
-                            }
-                        }
-                    }
-                    listRequest.PageToken = events.NextPageToken;
-                    syncToken = events.NextSyncToken;
-                } while (listRequest.PageToken != null);
-
-                userConfig.Since = await client.GetLatestSeqNumberOfEventDb(kaboomeUsername);
-                userConfig.GoogleSyncToken = syncToken;
-                var configDoc = JsonConvert.SerializeObject(userConfig);
-                await client.WriteUserConfig(kaboomeUsername, key, configDoc);
-
-                return configDoc;
             });
             return app;
         }
