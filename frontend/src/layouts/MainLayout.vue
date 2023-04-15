@@ -2,15 +2,6 @@
   <q-layout view="lHh Lpr lFf">
     <q-header elevated>
       <q-toolbar>
-        <q-btn
-          flat
-          dense
-          round
-          icon="menu"
-          aria-label="Menu"
-          @click="toggleLeftDrawer"
-        />
-
         <q-toolbar-title> Kaboome </q-toolbar-title>
         <q-btn
           flat
@@ -62,14 +53,9 @@
           />
         </div>
         <div v-else>
-          <span>Signed in as {{ this.login.user }}</span>
-          <q-btn
-            color="white"
-            text-color="black"
-            label="Log out"
-            aria-label="Log out"
-            v-on:click="logOut()"
-          />
+          <q-btn flat class="q-mr-md" :label="'Signed in as ' + this.login.user">
+            <UserMenu />
+          </q-btn>
         </div>
         <q-btn
           flat
@@ -82,13 +68,6 @@
       </q-toolbar>
     </q-header>
 
-    <q-drawer v-model="leftDrawerOpen" bordered>
-      <q-list>
-        <q-item-label header> Configuration </q-item-label>
-
-        <GoogleCalendarManager v-if="this.login.isLoggedIn" />
-      </q-list>
-    </q-drawer>
     <q-drawer v-model="rightDrawerOpen" bordered side="right">
       <q-list>
         <q-item-label header> Tasks & Habits </q-item-label>
@@ -104,17 +83,17 @@
 
 <script>
 import { defineComponent, ref } from "vue";
-import GoogleCalendarManager from "components/GoogleCalendarManager.vue";
 import { loginStore } from "../stores/login.js";
 import TaskList from "src/components/TaskList.vue";
+import UserMenu from "src/components/UserMenu.vue";
 
 export default defineComponent({
   name: "MainLayout",
 
   components: {
-    GoogleCalendarManager,
     TaskList,
-  },
+    UserMenu
+},
   setup() {
     const leftDrawerOpen = ref(false);
     const rightDrawerOpen = ref(false);

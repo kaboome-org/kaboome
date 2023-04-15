@@ -3,11 +3,12 @@
     <q-btn
       color="blue"
       text-color="white"
-      label="Authorize a Google Account"
       aria-label="Authorize a Google Account"
       onclick="window.open('/backend/google-signin','_blank','width=700,height=600');"
-    />
-    <q-tree :nodes="this.googleAccounts" node-key="label" default-expand-all>
+    >
+      Authorize a Google Account
+    </q-btn>
+    <q-tree :nodes="this.googleAccounts" no-nodes-label=" " node-key="label" default-expand-all>
       <template v-slot:default-header="prop">
         <div class="row items-center">
           <q-icon :name="prop.node.icon || 'refresh'" class="q-mr-sm" />
