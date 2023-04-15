@@ -4,7 +4,6 @@ namespace KaboomeBackend.Extensions
     using Google.Apis.Auth.OAuth2;
     using Google.Apis.Auth.OAuth2.Flows;
     using Google.Apis.Calendar.v3;
-    using Google.Apis.Calendar.v3.Data;
     using Google.Apis.Services;
     using KaboomeBackend.Couch;
     using KaboomeBackend.Models;
@@ -17,7 +16,6 @@ namespace KaboomeBackend.Extensions
         private const string GoogleShouldSendItsAuthCodeHere = "/backend/google-auth";
         private const string DeleteGoogleAccount = "/backend/delete-google-account";
         private const string RedirectTheUserIntoTheGoogleAuthFlow = "/backend/google-signin";
-        private const string GoogleCalendarList = "/backend/google-calendar-list";
         private const string YouCanCloseThisWindowNow = "<h1>You can close this window now</h1><script>window.close()</script>";
         private const string YouMustFirstAuthenticate = "<h1>You must first authenticate.</h1>";
 
@@ -68,37 +66,26 @@ namespace KaboomeBackend.Extensions
                     })
                 };
                 var service = new CalendarService(initializer);
-                var accountName = service.CalendarList.List().Execute().Items[0].Id;
-                await client.AddUserSecret(kaboomeUsername, $"google-{accountName}", JsonConvert.SerializeObject(new UserSecret { RefreshToken = tokres.RefreshToken }));
-                await client.WriteUserConfig(kaboomeUsername, $"google-{accountName}", JsonConvert.SerializeObject(new UserConfigDocIn { Since = null, GoogleSyncToken = null }));
+                var calendarList = service.CalendarList.List().Execute().Items;
+                var accountName = calendarList.FirstOrDefault(c => c.Primary == true, calendarList[0]).Id;
+                await client.AddUserSecret(kaboomeUsername, $"google-{accountName}", new UserSecretDocIn { GoogleRefreshToken = tokres.RefreshToken });
+                await client.WriteUserConfig(kaboomeUsername, $"google-{accountName}", new UserConfigDocIn
+                {
+                    GoogleCalendarConfigs =
+                    calendarList.Select(c => new GoogleCalendarConfig
+                    {
+                        GoogleCalendarPath = new GoogleCalendarPath
+                        {
+                            GoogleAccountId = accountName,
+                            GoogleCalendarId = c.Id
+                        },
+                        GoogleSyncToken = null,
+                        ShouldSync = false,
+                    }).ToList()
+                });
 
                 res.ContentType = "text/html";
                 return YouCanCloseThisWindowNow;
-            });
-            _ = app.MapGet(GoogleCalendarList, async (HttpRequest req, GoogleAuthorizationCodeFlow flow, AdminCouchClient client) =>
-            {
-                var kaboomeUsername = await AuthHelper.GetAndValidateUsername(req, couchDbUri);
-                if (kaboomeUsername == null)
-                {
-                    return YouMustFirstAuthenticate;
-                }
-                var usersecrets = await client.GetUserSecrets(kaboomeUsername, "google-");
-                var ret = new Dictionary<string, IList<CalendarListEntry>>();
-                foreach (var userSecret in usersecrets.Select(u => JsonConvert.DeserializeObject<UserSecret>(u)))
-                {
-                    var initializer = new BaseClientService.Initializer
-                    {
-                        HttpClientInitializer = new UserCredential(flow,
-                    "user", new Google.Apis.Auth.OAuth2.Responses.TokenResponse
-                    {
-                        RefreshToken = userSecret.RefreshToken
-                    })
-                    };
-                    var service = new CalendarService(initializer);
-                    var calendars = (await service.CalendarList.List().ExecuteAsync()).Items;
-                    ret.Add(calendars.FirstOrDefault(c => c.Primary == true, calendars[0]).Id, calendars);
-                }
-                return JsonConvert.SerializeObject(ret);
             });
             return app;
         }

@@ -1,11 +1,11 @@
 namespace KaboomeBackend.Models
 {
     /// <summary>
-    /// For every external account there is a UserConfigDoc
-    /// It saves data needed for syncing
-    /// The superclass UserConfigDocIn should be used when writing new docs into CouchDB
+    /// For every external account there is a UserSecretDoc
+    /// It saves data needed for authentication and authorization with the third party
+    /// The superclass UserSecretDocIn should be used when writing new docs into CouchDB
     /// </summary>
-    public class UserConfigDoc : UserConfigDocIn, IMyCouchDocument
+    public class UserSecretDoc : UserSecretDocIn, IMyCouchDocument
     {
         /// <summary>
         /// In the form of <code>$"{externalService}-{accountName}"</code>

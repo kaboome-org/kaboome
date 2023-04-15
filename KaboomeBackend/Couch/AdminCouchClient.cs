@@ -1,5 +1,6 @@
 namespace KaboomeBackend.Couch
 {
+    using KaboomeBackend.Models;
     using KaboomeBackend.Options;
     using MyCouch;
     using MyCouch.Requests;
@@ -34,50 +35,50 @@ namespace KaboomeBackend.Couch
         private static string ConfigDb(string name) => $"kaboome_{name}_config";
         private static string SecretDb(string name) => $"kaboome_{name}_secret";
 
-        public async Task AddUserSecret(string name, string id, string secretDoc)
+        public async Task AddUserSecret(string name, string id, UserSecretDocIn secretDoc)
         {
             using var secretclient = new MyCouchClient(this.connectionUrl, SecretDb(name));
-            await secretclient.Documents.PutAsync(id, secretDoc);
+            await secretclient.Documents.PutAsync(id, JsonConvert.SerializeObject(secretDoc));
         }
-        public async Task<List<string>> GetUserSecrets(string name, string idPrefix = "")
+        public async Task<List<UserSecretDoc?>> GetUserSecrets(string name, string idPrefix = "")
         {
             using var secretclient = new MyCouchClient(this.connectionUrl, SecretDb(name));
             var request = new QueryViewRequest("_all_docs").Configure(q => q.StartKey(idPrefix).EndKey(idPrefix + "~").IncludeDocs(true));
             var result = await secretclient.Views.QueryAsync(request);
-            var docs = result.Rows.Select(r => r.IncludedDoc).ToList();
+            var docs = result.Rows.Select(r => JsonConvert.DeserializeObject<UserSecretDoc>(r.IncludedDoc)).ToList();
             return docs;
         }
-        public async Task WriteUserConfig(string name, string id, string configDoc)
+        public async Task WriteUserConfig(string name, string id, UserConfigDocIn configDoc)
         {
             using var configclient = new MyCouchClient(this.connectionUrl, ConfigDb(name));
-            var res = await configclient.Documents.PutAsync(id, configDoc);
+            var res = await configclient.Documents.PutAsync(id, JsonConvert.SerializeObject(configDoc));
         }
-        public async Task<string> GetUserConfig(string name, string id)
+        public async Task<UserConfigDoc?> GetUserConfig(string name, string id)
         {
             using var configclient = new MyCouchClient(this.connectionUrl, ConfigDb(name));
-            return (await configclient.Documents.GetAsync(id)).Content;
+            return JsonConvert.DeserializeObject<UserConfigDoc>((await configclient.Documents.GetAsync(id)).Content);
         }
-        public async Task WriteKaboomeEvent(string name, string id, string kaboomeEvent)
+        public async Task WriteKaboomeEvent(string name, string id, KaboomeEventIn kaboomeEvent)
         {
             using var client = new MyCouchClient(this.connectionUrl, EventDb(name));
-            var res = await client.Documents.PutAsync(id, kaboomeEvent);
+            var res = await client.Documents.PutAsync(id, JsonConvert.SerializeObject(kaboomeEvent));
         }
         public async Task DeleteKaboomeEvent(string name, string id, string rev)
         {
             using var client = new MyCouchClient(this.connectionUrl, EventDb(name));
             var res = await client.Documents.DeleteAsync(id, rev);
         }
-        public async Task<string> GetKaboomeEvent(string name, string id)
+        public async Task<KaboomeEvent?> GetKaboomeEvent(string name, string id)
         {
             using var client = new MyCouchClient(this.connectionUrl, EventDb(name));
-            return (await client.Documents.GetAsync(id)).Content;
+            return JsonConvert.DeserializeObject<KaboomeEvent>((await client.Documents.GetAsync(id)).Content);
         }
-        public async Task<List<string>> GetEventChanges(string name, string? since = null)
+        public async Task<List<KaboomeEvent?>> GetEventChanges(string name, string? since = null)
         {
             var client = new MyCouchClient(this.connectionUrl, EventDb(name));
             var getChangesRequest = new GetChangesRequest { Feed = ChangesFeed.Normal, IncludeDocs = true, Since = since };
             var changes = await client.Changes.GetAsync(getChangesRequest);
-            return changes.Results.Select(c => c.IncludedDoc).ToList();
+            return changes.Results.Select(c => JsonConvert.DeserializeObject<KaboomeEvent>(c.IncludedDoc)).ToList();
         }
         public async Task<string> GetLatestSeqNumberOfEventDb(string name) {
             using var client = new MyCouchClient(this.connectionUrl, EventDb(name));

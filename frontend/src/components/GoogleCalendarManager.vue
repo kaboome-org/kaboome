@@ -46,7 +46,7 @@ import { ref } from "vue";
 export default {
   methods: {
     syncNow: function (googleCalendarPath) {
-      fetch("/backend/google-sync-events", {
+      fetch("/backend/third-party-sync-events", {
         method: "POST",
         body: JSON.stringify(googleCalendarPath),
         headers: {
@@ -56,6 +56,7 @@ export default {
       });
     },
     loadGoogleAccounts: function () {
+      /* TODO: Load from userConfigDoc
       fetch(`/backend/google-calendar-list`)
         .then((res) => {
           return res.text();
@@ -80,7 +81,7 @@ export default {
               });
             }
           }
-        });
+        });*/
     },
   },
   setup() {

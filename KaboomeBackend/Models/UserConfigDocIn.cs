@@ -1,8 +1,15 @@
-﻿namespace KaboomeBackend.Models
+namespace KaboomeBackend.Models
 {
-    internal class UserConfigDocIn
+    using Newtonsoft.Json;
+
+    /// <inheritdoc cref="UserConfigDoc"/>
+    public class UserConfigDocIn
     {
-        public string? GoogleSyncToken { get; set; }
-        public string? Since { get; set; }
+        /// <summary>
+        /// Google Accounts can have multiple calendars. They can be individually configured in kaboome
+        /// </summary>
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public List<GoogleCalendarConfig>? GoogleCalendarConfigs { get; set; }
+
     }
 }
