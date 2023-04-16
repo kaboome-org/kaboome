@@ -1,17 +1,33 @@
 <template>
   <div>
     <q-form @submit="submitForm">
-      <q-input :rules="[val => !!val || 'Field is required']" v-model="username" label="E-Mail" type="email">
+      <q-input
+        :rules="[(val) => !!val || 'Field is required']"
+        v-model="username"
+        label="Username"
+        type="text"
+      >
         <template v-slot:prepend>
-          <q-icon name="alternate_email" />
+          <q-icon name="account_circle" />
         </template>
       </q-input>
-      <q-input :rules="[val => !!val || 'Field is required']" v-model="password" label="Password" type="password">
+      <q-input
+        :rules="[(val) => !!val || 'Field is required']"
+        v-model="password"
+        label="Password"
+        type="password"
+      >
         <template v-slot:prepend>
           <q-icon name="password" />
         </template>
       </q-input>
-      <q-btn type="submit" color="primary" label="Sign up" class="q-mt-md" style="width: 100%;"></q-btn>
+      <q-btn
+        type="submit"
+        color="primary"
+        label="Sign up"
+        class="q-mt-md"
+        style="width: 100%"
+      ></q-btn>
     </q-form>
   </div>
   <q-dialog v-model="alert">
