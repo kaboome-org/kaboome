@@ -8,7 +8,7 @@
           </div>
 
           <SignInForm />
-          <q-btn color="white" text-color="black" class="q-mt-md" style="width: 100%;" label="Register instead" aria-label="register instead" to="/sign-up" />
+          <q-btn color="white" text-color="black" class="q-mt-md full-width" label="Register instead" aria-label="register instead" to="/sign-up" />
         </q-card>
       </div>
   </q-page>

@@ -1,23 +1,30 @@
 <template>
-  <q-btn v-on:click="reschedule()"> Reschedule </q-btn>
-  <q-checkbox v-model="showDone">Show Done</q-checkbox>
-  <draggable
-    v-model="tasks"
-    tag="ul"
-    handle=".handle"
-    v-on:change="reorder()"
-    itemKey="id"
-  >
-    <template #item="{ element }">
-      <div v-if="!element.extendedProps.isDone || showDone">
-        <q-icon name="menu" class="handle"></q-icon>
-        <span class="text">
-          {{ element.title }}
-          <q-icon name="check" v-if="element.extendedProps.isDone"></q-icon>
-        </span>
-      </div>
-    </template>
-  </draggable>
+  <div class="column fit">
+    <div class="col-10">
+      <h5 class="q-my-none">Tasks & Habits</h5>
+      <draggable
+        v-model="tasks"
+        tag="ul"
+        handle=".handle"
+        v-on:change="reorder()"
+        itemKey="id"
+      >
+        <template #item="{ element }">
+          <div v-if="!element.extendedProps.isDone || showDone">
+            <q-icon name="menu" class="handle"></q-icon>
+            <span class="text">
+              {{ element.title }}
+              <q-icon name="check" v-if="element.extendedProps.isDone"></q-icon>
+            </span>
+          </div>
+        </template>
+      </draggable>
+    </div>
+    <div class="col-2 column justify-end">
+      <q-btn v-on:click="reschedule()" class="full-width q-mb-sm"> Reschedule </q-btn>
+      <q-toggle v-model="showDone" label="Show Done" />
+    </div>
+  </div>
 </template>
 <script>
 import { ref } from "vue";

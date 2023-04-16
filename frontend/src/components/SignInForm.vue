@@ -34,8 +34,7 @@
         type="submit"
         color="primary"
         label="Sign in"
-        class="q-mt-md"
-        style="width: 100%"
+        class="q-mt-md full-width"
       ></q-btn>
     </q-form>
   </div>
@@ -57,7 +56,6 @@
 <script>
 import { ref } from "vue";
 import { loginStore } from "../stores/login.js";
-
 export default {
   setup() {
     return {
@@ -70,7 +68,6 @@ export default {
   methods: {
     submitForm() {
       const login = loginStore();
-
       login.logOut();
       login.logIn(
         this.username,

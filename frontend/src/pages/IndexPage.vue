@@ -1,4 +1,12 @@
 <template>
+  <q-btn round color="yellow-3"
+        class="fixed-bottom-right q-mr-xl q-mb-lg"
+        aria-label="Add event"
+        title="Add event"
+        @click="openModal()"
+        >
+    <q-icon name="add" color="amber-9" />
+  </q-btn>
   <q-page class="flex flex-center">
     <EventEditModal
       :eventToOpen="this.eventForm"
@@ -26,6 +34,7 @@ import FullCalendar from "@fullcalendar/vue3";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import EventEditModal from "src/components/EventEditModal.vue";
 import interactionPlugin from "@fullcalendar/interaction";
+import { date } from 'quasar';
 
 const zoomLevels = [
   "00:05:00",
@@ -117,10 +126,6 @@ export default defineComponent({
     function editEvent(changedEvent) {
       instance.calendar.put(changedEvent);
     }
-    function openModal(eventToOpen) {
-      instance.eventForm = eventToOpen;
-      instance.eventEditDialogueOpen = true;
-    }
     this.calendarOptions.eventResize = (eventResizeInfo) => {
       editEvent(eventResizeInfo.event);
     };
@@ -128,7 +133,7 @@ export default defineComponent({
       editEvent(eventDropInfo.event);
     };
     this.calendarOptions.select = (selectionInfo) => {
-      openModal({
+      this.openModal({
         id: "kaboome-" + Number(new Date()),
         title: "New Event",
         start: selectionInfo.start,
@@ -142,7 +147,7 @@ export default defineComponent({
       });
     };
     this.calendarOptions.eventClick = (arg) => {
-      openModal(arg.event);
+      this.openModal(arg.event);
     };
   },
   computed: {
@@ -162,6 +167,26 @@ export default defineComponent({
     },
   },
   methods: {
+    openModal(eventToOpen) {
+      if (!eventToOpen){
+        let currentDate = new Date();
+        eventToOpen = {
+          id: "kaboome-" + Number(new Date()),
+          title: "New Event",
+          start: currentDate,
+          end: date.addToDate(currentDate, { minutes: 30 }),
+          extendedProps: {
+            description: "",
+            eventType: "Event",
+            isDone: false,
+            ReadWriteExternalEvent: {},
+          },
+        }
+      }
+
+      this.eventForm = eventToOpen;
+      this.eventEditDialogueOpen = true;
+    },
     deleteEvent(eventForm) {
       this.calendar.delete(eventForm);
     },
