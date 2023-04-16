@@ -12,11 +12,13 @@ namespace KaboomeBackend.ThirdPartySyncers
     {
         private readonly GoogleAuthorizationCodeFlow flow;
         private readonly AdminCouchClient client;
+        private readonly string? authSessionCookie;
 
-        public GoogleSyncer(GoogleAuthorizationCodeFlow flow, AdminCouchClient client)
+        public GoogleSyncer(GoogleAuthorizationCodeFlow flow, AdminCouchClient client, string authSessionCookie)
         {
             this.flow = flow;
             this.client = client;
+            this.authSessionCookie = authSessionCookie;
         }
         private static long EventDateTimeToTimestamp(EventDateTime eventDateTime) =>
             DateTimeOffset.Parse(eventDateTime.DateTimeRaw ?? eventDateTime.Date).ToUnixTimeMilliseconds();
@@ -39,7 +41,7 @@ namespace KaboomeBackend.ThirdPartySyncers
             foreach (var googleCalendarConfig in (userConfig.GoogleCalendarConfigs ?? new()).Where(gcc => gcc.ShouldSync))
             {
                 //PUSH
-                foreach (var kaboomeEvent in await this.client.GetEventChanges(kaboomeUsername, googleCalendarConfig.Since))
+                foreach (var kaboomeEvent in await this.client.GetEventChanges(kaboomeUsername, this.authSessionCookie, googleCalendarConfig.Since))
                 {
                     await this.PushEventToGoogle(kaboomeUsername, service, googleCalendarConfig, kaboomeEvent);
                 }
@@ -53,7 +55,7 @@ namespace KaboomeBackend.ThirdPartySyncers
                     var events = await listRequest.ExecuteAsync();
                     foreach (var googleEvent in events.Items)
                     {
-                        await this.PullEventFromGoogle(kaboomeUsername, googleEvent);
+                        await this.PullEventFromGoogle(kaboomeUsername, googleEvent, googleCalendarConfig.GoogleCalendarPath);
                     }
                     listRequest.PageToken = events.NextPageToken;
                     syncToken = events.NextSyncToken;
@@ -65,7 +67,7 @@ namespace KaboomeBackend.ThirdPartySyncers
             }
         }
 
-        private async Task PullEventFromGoogle(string kaboomeUsername, Event? googleEvent)
+        private async Task PullEventFromGoogle(string kaboomeUsername, Event? googleEvent, GoogleCalendarPath googleCalendarPath)
         {
             if (googleEvent.Status == "cancelled")
             {
@@ -90,6 +92,7 @@ namespace KaboomeBackend.ThirdPartySyncers
                         EndTimestamp = EventDateTimeToTimestamp(googleEvent.End),
                     };
                     kaboomeEvent.ReadWriteExternalEvent.Google = googleEvent;
+                    kaboomeEvent.ReadWriteExternalEvent.GoogleCalendarPath = googleCalendarPath;
                     await this.client.WriteKaboomeEvent(kaboomeUsername, $"google-{googleEvent.Id}", kaboomeEvent);
                 }
                 else

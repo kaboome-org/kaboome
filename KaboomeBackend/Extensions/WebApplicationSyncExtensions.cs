@@ -24,7 +24,7 @@ namespace KaboomeBackend.Extensions
                     var accountType = userSecret._id.Split('-')[0];
                     if (accountType == "google")
                     {
-                        var googleSyncer = new GoogleSyncer(flow, client);
+                        var googleSyncer = new GoogleSyncer(flow, client, req.Cookies["AuthSession"]);
                         await googleSyncer.SyncGoogleAccount(kaboomeUsername, userConfig, userSecret);
                     }
                 }
