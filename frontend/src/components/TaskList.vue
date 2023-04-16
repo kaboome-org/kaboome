@@ -21,7 +21,9 @@
       </draggable>
     </div>
     <div class="col-2 column justify-end">
-      <q-btn v-on:click="reschedule()" class="full-width q-mb-sm"> Reschedule </q-btn>
+      <q-btn v-on:click="reschedule()" class="full-width q-mb-sm">
+        Reschedule
+      </q-btn>
       <q-toggle v-model="showDone" label="Show Done" />
     </div>
   </div>
@@ -69,7 +71,10 @@ export default {
     reschedule() {
       this.calendar.events().then((res) => {
         const tasksToReschedule = res
-          .filter((r) => r.extendedProps.eventType === "Task" && !r.extendedProps.isDone)
+          .filter(
+            (r) =>
+              r.extendedProps.eventType === "Task" && !r.extendedProps.isDone
+          )
           .sort((a, b) => a.start - b.start);
         schedule(
           tasksToReschedule,
