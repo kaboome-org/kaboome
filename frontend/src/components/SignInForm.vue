@@ -6,6 +6,11 @@
         v-model="username"
         label="Username"
         type="text"
+        autofocus
+        standout="bg-blue-grey-1"
+        class="q-mb-sm q-input-dark"
+        color="black"
+        dense
       >
         <template v-slot:prepend>
           <q-icon name="account_circle" />
@@ -16,6 +21,10 @@
         v-model="password"
         label="Password"
         type="password"
+        standout="bg-blue-grey-1"
+        class="q-mb-sm q-input-dark"
+        color="black"
+        dense
       >
         <template v-slot:prepend>
           <q-icon name="password" />
