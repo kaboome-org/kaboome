@@ -52,6 +52,17 @@ export default defineComponent({
     calendar.activateSync(login.user);
     const zoomLevelIndex = useLocalStorage("zoomLevelIndex", 0);
 
+    const syncTimer = setInterval(() => {
+      if (login.user){
+        try {
+          this.syncNow()
+        } catch (error) {
+          console.warn(error);
+        }
+      }
+    }, 15000);
+
+
     const calendarOptions = {
       plugins: [timeGridPlugin, interactionPlugin],
       initialView: "timeGridWeek",
@@ -192,6 +203,15 @@ export default defineComponent({
     },
     saveEvent(eventForm) {
       this.calendar.put(eventForm);
+    },
+    syncNow: function () {
+      fetch("/backend/third-party-sync-events", {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+      });
     },
   },
   components: { FullCalendar, EventEditModal },

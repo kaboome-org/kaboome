@@ -57,7 +57,12 @@ module.exports = {
 
   // add your custom rules here
   rules: {
-    'no-console': 'error',
+    "no-console": [
+      "error",
+      {
+        "allow": ["info", "warn", "error"]
+      }
+    ],
     'prefer-promise-reject-errors': 'off',
 
     // allow debugger during development only
