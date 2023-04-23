@@ -19,8 +19,10 @@
     "@fullcalendar/vue3": "^6.1.2",
     "@quasar/extras": "^1.0.0",
     "@vueuse/core": "^9.12.0",
+    "json-editor-vue": "^0.10.6",
     "pinia": "^2.0.29",
     "quasar": "^2.6.0",
+    "vanilla-jsoneditor": "^0.17.1",
     "vue": "^3.0.0",
     "vue-router": "^4.0.0",
     "vuedraggable": "^4.1.0"

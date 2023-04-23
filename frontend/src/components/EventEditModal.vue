@@ -224,6 +224,22 @@
               label="Event type"
               class="q-mb-sm"
             />
+            <q-btn
+              v-if="eventForm.extendedProps.ReadWriteExternalEvent.Google"
+              push
+              color="primary"
+              label="Expert edit other fields"
+            >
+              <q-popup-proxy
+                cover
+                transition-show="scale"
+                transition-hide="scale"
+              >
+                <JsonEditorVue
+                  v-model="eventForm.extendedProps.ReadWriteExternalEvent"
+                />
+              </q-popup-proxy>
+            </q-btn>
           </q-card-section>
           <q-card-actions align="right">
             <q-btn
@@ -243,6 +259,7 @@
 <script>
 import { reactive } from "vue";
 import { date } from "quasar";
+import JsonEditorVue from "json-editor-vue";
 
 export default {
   name: "IndexPage",
@@ -274,6 +291,13 @@ export default {
   },
   methods: {
     onSubmit() {
+      if (
+        typeof this.eventForm.extendedProps.ReadWriteExternalEvent == "string"
+      ) {
+        this.eventForm.extendedProps.ReadWriteExternalEvent = JSON.parse(
+          this.eventForm.extendedProps.ReadWriteExternalEvent
+        );
+      }
       this.eventForm.start = this.convertStringDateTimeToDateObject(
         this.eventForm.start,
         this.eventForm.startTime
@@ -288,5 +312,6 @@ export default {
       return date.extractDate(d + " " + t, "YYYY/MM/DD HH:mm");
     },
   },
+  components: { JsonEditorVue },
 };
 </script>
