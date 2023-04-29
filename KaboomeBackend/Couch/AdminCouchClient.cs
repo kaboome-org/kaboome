@@ -97,11 +97,17 @@ namespace KaboomeBackend.Couch
                         var response = httpClient.GetAsync($"{EventDb(name)}/{ke._id}?revs=true&open_revs=all").Result;
                         var responseString = response.Content.ReadAsStringAsync().Result;
                         var documentResponse = JsonConvert.DeserializeObject<List<Dictionary<string, DocumentResponse>>>(responseString)[0]["ok"];
-                        var preRevision = $"{documentResponse.Revisions.Start - 1}-{documentResponse.Revisions.Ids[1]}";
-                        var preDeletionContents = client.Documents.GetAsync(ke._id, preRevision).Result.Content;
-                        var preDeletionKaboomeEvent = JsonConvert.DeserializeObject<KaboomeEvent>(preDeletionContents);
-                        preDeletionKaboomeEvent._deleted = true;
-                        return preDeletionKaboomeEvent;
+                        for (var i = 1; i < documentResponse.Revisions.Start; i++)
+                        {
+                            var preRevision = $"{documentResponse.Revisions.Start - i}-{documentResponse.Revisions.Ids[i]}";
+                            var preDeletionContents = client.Documents.GetAsync(ke._id, preRevision).Result.Content;
+                            if (preDeletionContents != null)
+                            {
+                                var preDeletionKaboomeEvent = JsonConvert.DeserializeObject<KaboomeEvent>(preDeletionContents);
+                                preDeletionKaboomeEvent._deleted = true;
+                                return preDeletionKaboomeEvent;
+                            }
+                        }
                     }
                 }
                 return ke;
