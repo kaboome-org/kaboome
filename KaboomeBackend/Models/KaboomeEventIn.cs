@@ -17,5 +17,6 @@ namespace KaboomeBackend.Models
         public List<ExternalEvent> WriteOnlyExternalEvents { get; set; } = new();
         public long StartTimestamp { get; set; }
         public long EndTimestamp { get; set; }
+        public string? RRule { get; set; }
     }
 }
