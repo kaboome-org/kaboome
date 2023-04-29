@@ -26,6 +26,7 @@
               v-model="eventForm.title"
               label="Title"
               autofocus
+              @focus="(evt) => evt.target.select()"
               standout="bg-blue-grey-1"
               class="q-mb-sm q-input-dark"
               color="black"
