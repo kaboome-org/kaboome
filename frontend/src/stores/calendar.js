@@ -1,17 +1,30 @@
 import { defineStore } from "pinia";
 
+function timestampToDTStart(time) {
+  return (
+    "DTSTART:" +
+    new Date(time).toISOString().replace(/[-:]/g, "").replace(/\..+/, "Z\n")
+  );
+}
+
 function couchDocToFullcalendarEvent(doc) {
+  const rrule = doc.RRule
+    ? timestampToDTStart(doc.StartTimestamp) + doc.RRule
+    : null;
   return {
     id: doc._id,
     title: doc.Title,
     start: doc.StartTimestamp,
     end: doc.EndTimestamp,
+    duration: doc.EndTimestamp - doc.StartTimestamp, // Fullcalendar uses it to compute ends of rrule events
+    rrule: rrule, // Important for presentation of recuring events only. (Not accessible when receiving events back)
     extendedProps: {
       description: doc.Description,
       ReadWriteExternalEvent: doc.ReadWriteExternalEvent,
       eventType: doc.eventType ?? "Event",
       isDone: doc.isDone ?? false,
       rev: doc._rev,
+      rrule: rrule, // see above rrule comment -> Keep it in extendedProps so its accessible
     },
     backgroundColor: doc.isDone ? "#21BA45" : "#1976d2",
   };
@@ -28,6 +41,7 @@ function fullcalendarEventToCouchDoc(fullcalendarEvent) {
       fullcalendarEvent.extendedProps?.ReadWriteExternalEvent,
     eventType: fullcalendarEvent.extendedProps?.eventType,
     isDone: fullcalendarEvent.extendedProps?.isDone,
+    RRule: fullcalendarEvent.extendedProps?.rrule?.split("\n")[1],
   };
 }
 

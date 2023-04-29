@@ -1,10 +1,12 @@
 <template>
-  <q-btn round color="yellow-3"
-        class="fixed-bottom-right q-mr-xl q-mb-lg"
-        aria-label="Add event"
-        title="Add event"
-        @click="openModal()"
-        >
+  <q-btn
+    round
+    color="yellow-3"
+    class="fixed-bottom-right q-mr-xl q-mb-lg"
+    aria-label="Add event"
+    title="Add event"
+    @click="openModal()"
+  >
     <q-icon name="add" color="amber-9" />
   </q-btn>
   <q-page class="flex flex-center">
@@ -32,9 +34,10 @@ import { calendarStore } from "../stores/calendar.js";
 import { useLocalStorage } from "@vueuse/core";
 import FullCalendar from "@fullcalendar/vue3";
 import timeGridPlugin from "@fullcalendar/timegrid";
+import rrulePlugin from "@fullcalendar/rrule";
 import EventEditModal from "src/components/EventEditModal.vue";
 import interactionPlugin from "@fullcalendar/interaction";
-import { date } from 'quasar';
+import { date } from "quasar";
 
 const zoomLevels = [
   "00:05:00",
@@ -52,19 +55,8 @@ export default defineComponent({
     calendar.activateSync(login.user);
     const zoomLevelIndex = useLocalStorage("zoomLevelIndex", 0);
 
-    const syncTimer = setInterval(() => {
-      if (login.user){
-        try {
-          this.syncNow()
-        } catch (error) {
-          console.warn(error);
-        }
-      }
-    }, 15000);
-
-
     const calendarOptions = {
-      plugins: [timeGridPlugin, interactionPlugin],
+      plugins: [timeGridPlugin, interactionPlugin, rrulePlugin],
       initialView: "timeGridWeek",
       firstDay: new Date().getDay() - 1,
       scrollTime: new Date(new Date() - 3600000).toLocaleTimeString(),
@@ -134,6 +126,15 @@ export default defineComponent({
       center: "title",
       left: "zoomout,zoomin",
     };
+    const syncTimer = setInterval(() => {
+      if (instance.login.user) {
+        try {
+          instance.syncNow();
+        } catch (error) {
+          console.warn(error);
+        }
+      }
+    }, 15000);
     function editEvent(changedEvent) {
       instance.calendar.put(changedEvent);
     }
@@ -179,7 +180,7 @@ export default defineComponent({
   },
   methods: {
     openModal(eventToOpen) {
-      if (!eventToOpen){
+      if (!eventToOpen) {
         let currentDate = new Date();
         eventToOpen = {
           id: "kaboome-" + Number(new Date()),
@@ -192,7 +193,7 @@ export default defineComponent({
             isDone: false,
             ReadWriteExternalEvent: {},
           },
-        }
+        };
       }
 
       this.eventForm = eventToOpen;

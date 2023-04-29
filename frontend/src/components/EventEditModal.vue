@@ -285,7 +285,8 @@ export default {
         eventType: this.eventToOpen.extendedProps?.eventType,
         isDone: this.eventToOpen.extendedProps?.isDone,
         ReadWriteExternalEvent:
-          this.eventToOpen.extendedProps.ReadWriteExternalEvent,
+          this.eventToOpen.extendedProps?.ReadWriteExternalEvent,
+        rrule: this.eventToOpen.extendedProps?.rrule,
       },
     });
   },

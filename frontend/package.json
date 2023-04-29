@@ -15,6 +15,7 @@
   "dependencies": {
     "@fullcalendar/core": "^6.1.1",
     "@fullcalendar/interaction": "^6.1.1",
+    "@fullcalendar/rrule": "^6.1.5",
     "@fullcalendar/timegrid": "^6.1.1",
     "@fullcalendar/vue3": "^6.1.2",
     "@quasar/extras": "^1.0.0",
@@ -22,6 +23,7 @@
     "json-editor-vue": "^0.10.6",
     "pinia": "^2.0.29",
     "quasar": "^2.6.0",
+    "rrule": "^2.7.2",
     "vanilla-jsoneditor": "^0.17.1",
     "vue": "^3.0.0",
     "vue-router": "^4.0.0",
