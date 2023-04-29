@@ -1,5 +1,6 @@
 namespace KaboomeBackend.ThirdPartySyncers
 {
+    using Google;
     using Google.Apis.Auth.OAuth2;
     using Google.Apis.Auth.OAuth2.Flows;
     using Google.Apis.Calendar.v3;
@@ -134,7 +135,18 @@ namespace KaboomeBackend.ThirdPartySyncers
             if (kaboomeEvent._deleted == true)
             {
                 // Delete
-                await service.Events.Delete(googleCalendarId, googleEventId).ExecuteAsync();
+                try
+                {
+                    await service.Events.Delete(googleCalendarId, googleEventId).ExecuteAsync();
+                }
+                catch (GoogleApiException g)
+                {
+
+                    if(g.HttpStatusCode != System.Net.HttpStatusCode.Gone)
+                    {
+                        throw g;
+                    }
+                }
 
             }
             else if (google?.Id != null)
