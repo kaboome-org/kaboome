@@ -222,7 +222,6 @@ export default defineComponent({
           },
         };
       }
-
       this.eventForm = eventToOpen;
       this.eventEditDialogueOpen = true;
     },
@@ -240,7 +239,11 @@ export default defineComponent({
       }
     },
     saveEvent(eventForm) {
-      if (eventForm.extendedProps?.rrule) {
+      if (
+        eventForm.extendedProps?.rrule &&
+        eventForm.extendedProps.rev &&
+        this.eventForm.extendedProps?.rrule
+      ) {
         this.openRecurringEventsEditModal(eventForm, this.eventForm);
       } else {
         this.calendar.put(eventForm);

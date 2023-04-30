@@ -214,10 +214,15 @@
               v-model="eventForm.extendedProps.description"
               label="Description"
               standout="bg-blue-grey-1"
+              class="q-mb-md q-input-dark"
+            />
+            <q-input
+              v-model="eventForm.extendedProps.rrule"
+              label="Recurrence (DEMO)"
+              standout="bg-blue-grey-1"
               autogrow
               class="q-mb-md q-input-dark"
             />
-
             <q-select
               filled
               v-model="eventForm.extendedProps.eventType"
@@ -293,22 +298,23 @@ export default {
   },
   methods: {
     onSubmit() {
+      const eventFormCopy = JSON.parse(JSON.stringify(this.eventForm));
       if (
-        typeof this.eventForm.extendedProps.ReadWriteExternalEvent == "string"
+        typeof eventFormCopy.extendedProps.ReadWriteExternalEvent == "string"
       ) {
-        this.eventForm.extendedProps.ReadWriteExternalEvent = JSON.parse(
-          this.eventForm.extendedProps.ReadWriteExternalEvent
+        eventFormCopy.extendedProps.ReadWriteExternalEvent = JSON.parse(
+          eventFormCopy.extendedProps.ReadWriteExternalEvent
         );
       }
-      this.eventForm.start = this.convertStringDateTimeToDateObject(
-        this.eventForm.start,
-        this.eventForm.startTime
+      eventFormCopy.start = this.convertStringDateTimeToDateObject(
+        eventFormCopy.start,
+        eventFormCopy.startTime
       );
-      this.eventForm.end = this.convertStringDateTimeToDateObject(
-        this.eventForm.end,
-        this.eventForm.endTime
+      eventFormCopy.end = this.convertStringDateTimeToDateObject(
+        eventFormCopy.end,
+        eventFormCopy.endTime
       );
-      this.$emit("eventSaved", this.eventForm);
+      this.$emit("eventSaved", eventFormCopy);
     },
     convertStringDateTimeToDateObject(d, t) {
       return date.extractDate(d + " " + t, "YYYY/MM/DD HH:mm");
