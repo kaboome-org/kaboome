@@ -18,6 +18,10 @@ function couchDocToFullcalendarEvent(doc) {
     end: doc.EndTimestamp,
     duration: doc.EndTimestamp - doc.StartTimestamp, // Fullcalendar uses it to compute ends of rrule events
     rrule: rrule, // Important for presentation of recuring events only. (Not accessible when receiving events back)
+    exdate:
+      (doc.ExDates?.length ?? 0) == 0
+        ? null
+        : doc.ExDates?.map((d) => new Date(d).toISOString()),
     extendedProps: {
       description: doc.Description,
       ReadWriteExternalEvent: doc.ReadWriteExternalEvent,
@@ -25,6 +29,7 @@ function couchDocToFullcalendarEvent(doc) {
       isDone: doc.isDone ?? false,
       rev: doc._rev,
       rrule: rrule, // see above rrule comment -> Keep it in extendedProps so its accessible
+      exdates: doc.ExDates ?? [],
     },
     backgroundColor: doc.isDone ? "#21BA45" : "#1976d2",
   };
@@ -42,6 +47,7 @@ function fullcalendarEventToCouchDoc(fullcalendarEvent) {
     eventType: fullcalendarEvent.extendedProps?.eventType,
     isDone: fullcalendarEvent.extendedProps?.isDone,
     RRule: fullcalendarEvent.extendedProps?.rrule?.split("\n")[1],
+    ExDates: fullcalendarEvent.extendedProps?.exdates?.map((d) => Number(d)),
   };
 }
 

@@ -263,7 +263,7 @@ import { date } from "quasar";
 import JsonEditorVue from "json-editor-vue";
 
 export default {
-  name: "IndexPage",
+  name: "EventEditModal",
   props: ["eventToOpen"],
   emits: ["eventSaved", "eventDeleted"],
   setup() {

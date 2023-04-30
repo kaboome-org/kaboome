@@ -5,7 +5,7 @@
     class="fixed-bottom-right q-mr-xl q-mb-lg"
     aria-label="Add event"
     title="Add event"
-    @click="openModal()"
+    @click="openEventEditModal()"
   >
     <q-icon name="add" color="amber-9" />
   </q-btn>
@@ -17,6 +17,14 @@
       @event-saved="saveEvent"
     >
     </EventEditModal>
+    <RecurringEventsEditModal
+      :previousEvent="this.previousEvent"
+      :proposedChangedEvent="this.proposedChangedEvent"
+      v-model="this.recurringEventsEditModalOpen"
+      @event-deleted="this.calendar.delete"
+      @event-saved="this.calendar.put"
+      @cancel="this.$refs.fullcalendar.calendar.refetchEvents()"
+    ></RecurringEventsEditModal>
     <div style="width: 100%">
       <FullCalendar
         :options="calendarOptions"
@@ -36,6 +44,7 @@ import FullCalendar from "@fullcalendar/vue3";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import rrulePlugin from "@fullcalendar/rrule";
 import EventEditModal from "src/components/EventEditModal.vue";
+import RecurringEventsEditModal from "src/components/RecurringEventsEditModal.vue";
 import interactionPlugin from "@fullcalendar/interaction";
 import { date } from "quasar";
 
@@ -72,7 +81,10 @@ export default defineComponent({
     return {
       calendar,
       eventForm: {},
+      previousEvent: {},
+      proposedChangedEvent: {},
       eventEditDialogueOpen: ref(false),
+      recurringEventsEditModalOpen: ref(false),
       login,
       calendarOptions,
       rerender: ref(false),
@@ -139,13 +151,27 @@ export default defineComponent({
       instance.calendar.put(changedEvent);
     }
     this.calendarOptions.eventResize = (eventResizeInfo) => {
-      editEvent(eventResizeInfo.event);
+      if (eventResizeInfo.event.extendedProps?.rrule) {
+        this.openRecurringEventsEditModal(
+          eventResizeInfo.event,
+          eventResizeInfo.oldEvent
+        );
+      } else {
+        editEvent(eventResizeInfo.event);
+      }
     };
     this.calendarOptions.eventDrop = (eventDropInfo) => {
-      editEvent(eventDropInfo.event);
+      if (eventDropInfo.event.extendedProps?.rrule) {
+        this.openRecurringEventsEditModal(
+          eventDropInfo.event,
+          eventDropInfo.oldEvent
+        );
+      } else {
+        editEvent(eventDropInfo.event);
+      }
     };
     this.calendarOptions.select = (selectionInfo) => {
-      this.openModal({
+      this.openEventEditModal({
         id: "kaboome-" + Number(new Date()),
         title: "New Event",
         start: selectionInfo.start,
@@ -159,7 +185,7 @@ export default defineComponent({
       });
     };
     this.calendarOptions.eventClick = (arg) => {
-      this.openModal(arg.event);
+      this.openEventEditModal(arg.event);
     };
   },
   computed: {
@@ -179,7 +205,7 @@ export default defineComponent({
     },
   },
   methods: {
-    openModal(eventToOpen) {
+    openEventEditModal(eventToOpen) {
       if (!eventToOpen) {
         let currentDate = new Date();
         eventToOpen = {
@@ -199,11 +225,25 @@ export default defineComponent({
       this.eventForm = eventToOpen;
       this.eventEditDialogueOpen = true;
     },
+    openRecurringEventsEditModal(proposedChangedEvent, previousEvent) {
+      this.proposedChangedEvent = proposedChangedEvent;
+      this.previousEvent = previousEvent;
+      this.recurringEventsEditModalOpen = true;
+    },
     deleteEvent(eventForm) {
-      this.calendar.delete(eventForm);
+      if (eventForm.extendedProps?.rrule) {
+        eventForm.deleted = true;
+        this.openRecurringEventsEditModal(eventForm, this.eventForm);
+      } else {
+        this.calendar.delete(eventForm);
+      }
     },
     saveEvent(eventForm) {
-      this.calendar.put(eventForm);
+      if (eventForm.extendedProps?.rrule) {
+        this.openRecurringEventsEditModal(eventForm, this.eventForm);
+      } else {
+        this.calendar.put(eventForm);
+      }
     },
     syncNow: function () {
       fetch("/backend/third-party-sync-events", {
@@ -215,6 +255,6 @@ export default defineComponent({
       });
     },
   },
-  components: { FullCalendar, EventEditModal },
+  components: { FullCalendar, EventEditModal, RecurringEventsEditModal },
 });
 </script>
