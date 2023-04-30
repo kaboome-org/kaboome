@@ -18,5 +18,6 @@ namespace KaboomeBackend.Models
         public long StartTimestamp { get; set; }
         public long EndTimestamp { get; set; }
         public string? RRule { get; set; }
+        public List<long> ExDates { get; set; } = new();
     }
 }

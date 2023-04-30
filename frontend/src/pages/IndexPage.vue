@@ -138,6 +138,7 @@ export default defineComponent({
       center: "title",
       left: "zoomout,zoomin",
     };
+    this.syncNow();
     const syncTimer = setInterval(() => {
       if (instance.login.user) {
         try {
