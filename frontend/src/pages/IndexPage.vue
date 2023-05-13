@@ -17,6 +17,10 @@
       @event-saved="saveEvent"
     >
     </EventEditModal>
+    <GotoDateModal
+      v-model="this.gotoDateModalOpen"
+      @dateSelected="gotoDate"
+    ></GotoDateModal>
     <RecurringEventsEditModal
       :previousEvent="this.previousEvent"
       :proposedChangedEvent="this.proposedChangedEvent"
@@ -44,6 +48,7 @@ import FullCalendar from "@fullcalendar/vue3";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import rrulePlugin from "@fullcalendar/rrule";
 import EventEditModal from "src/components/EventEditModal.vue";
+import GotoDateModal from "src/components/GotoDateModal.vue";
 import RecurringEventsEditModal from "src/components/RecurringEventsEditModal.vue";
 import interactionPlugin from "@fullcalendar/interaction";
 import { date } from "quasar";
@@ -85,6 +90,7 @@ export default defineComponent({
       proposedChangedEvent: {},
       eventEditDialogueOpen: ref(false),
       recurringEventsEditModalOpen: ref(false),
+      gotoDateModalOpen: ref(false),
       login,
       calendarOptions,
       rerender: ref(false),
@@ -97,6 +103,14 @@ export default defineComponent({
     this.calendar.registerChangesHandler(() => {
       instance.$refs.fullcalendar.calendar.refetchEvents();
     });
+    const title =
+      instance.$refs.fullcalendar.calendar.el.getElementsByClassName(
+        "fc-toolbar-title"
+      )[0];
+    title.style.cursor = "pointer";
+    title.onclick = () => {
+      instance.gotoDateModalOpen = true;
+    };
   },
   created() {
     const instance = this;
@@ -258,7 +272,15 @@ export default defineComponent({
         },
       });
     },
+    gotoDate: function (start) {
+      this.$refs.fullcalendar.calendar.gotoDate(start.replaceAll("/", "-"));
+    },
   },
-  components: { FullCalendar, EventEditModal, RecurringEventsEditModal },
+  components: {
+    FullCalendar,
+    EventEditModal,
+    RecurringEventsEditModal,
+    GotoDateModal,
+  },
 });
 </script>
