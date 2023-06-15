@@ -17,7 +17,17 @@
     >
       <template v-slot:default-header="prop">
         <div class="row items-center full-width">
-          <div class="text-weight-bold text-primary ellipsis" style="width: 80%;" :title="prop.node.label"><q-icon v-if="prop.node.icon" :name="prop.node.icon" class="q-pr-sm" />{{ prop.node.label }}</div>
+          <div
+            class="text-weight-bold text-primary ellipsis"
+            style="width: 80%"
+            :title="prop.node.label"
+          >
+            <q-icon
+              v-if="prop.node.icon"
+              :name="prop.node.icon"
+              class="q-pr-sm"
+            />{{ prop.node.label }}
+          </div>
           <div v-if="!prop.node.doc" class="q-ml-auto">
             <q-btn
               round
@@ -40,6 +50,20 @@
             v-on:click="this.setShouldSync(prop.node)"
             label="Sync this calendar"
           />
+          <q-btn
+            push
+            color="primary"
+            label="Configure syncs from other calendars"
+          >
+            <q-popup-proxy
+              cover
+              transition-show="scale"
+              transition-hide="scale"
+              v-on:hide="this.setSyncFromCalendars(prop.node)"
+            >
+              <JsonEditorVue v-model="prop.node.syncFromCalendars" />
+            </q-popup-proxy>
+          </q-btn>
         </div>
       </template>
     </q-tree>
@@ -49,6 +73,7 @@
 <script>
 import { configStore } from "../stores/config.js";
 import { ref } from "vue";
+import JsonEditorVue from "json-editor-vue";
 
 export default {
   methods: {
@@ -56,6 +81,18 @@ export default {
       node.doc.GoogleCalendarConfigs.find(
         (v) => v.GoogleCalendarPath.GoogleCalendarId == node.label
       ).ShouldSync = node.shouldSync;
+      this.config.configDb.put(node.doc);
+    },
+    setSyncFromCalendars: function (node) {
+      const target = node.doc.GoogleCalendarConfigs.find(
+        (v) => v.GoogleCalendarPath.GoogleCalendarId == node.label
+      );
+      if (typeof node.syncFromCalendars == "string") {
+        target.syncFromCalendars = JSON.parse(node.syncFromCalendars);
+      } else {
+        target.syncFromCalendars = node.syncFromCalendars;
+      }
+
       this.config.configDb.put(node.doc);
     },
     loadGoogleAccounts: async function () {
@@ -73,6 +110,15 @@ export default {
                   icon: "calendar_month",
                   doc: row.doc,
                   shouldSync: v.ShouldSync,
+                  syncFromCalendars: v.syncFromCalendars ?? [
+                    {
+                      calendarPath: {
+                        vendor: "kaboome",
+                        vendorCalendarPathJson: "null",
+                      },
+                      syncType: "NONE",
+                    },
+                  ],
                 };
               }),
             });
@@ -102,5 +148,6 @@ export default {
       });
     this.loadGoogleAccounts();
   },
+  components: { JsonEditorVue },
 };
 </script>
