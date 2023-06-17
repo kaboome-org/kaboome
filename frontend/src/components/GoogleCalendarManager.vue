@@ -95,37 +95,6 @@ export default {
 
       this.config.configDb.put(node.doc);
     },
-    loadGoogleAccounts: async function () {
-      const instance = this;
-      await this.config.configDb.allDocs(
-        { include_docs: true, descending: true },
-        function (err, doc) {
-          instance.googleAccounts = [];
-          doc.rows.forEach((row) => {
-            instance.googleAccounts.push({
-              label: row.id,
-              children: row.doc.GoogleCalendarConfigs.map((v) => {
-                return {
-                  label: v.GoogleCalendarPath.GoogleCalendarId,
-                  icon: "calendar_month",
-                  doc: row.doc,
-                  shouldSync: v.ShouldSync,
-                  syncFromCalendars: v.syncFromCalendars ?? [
-                    {
-                      calendarPath: {
-                        vendor: "kaboome",
-                        vendorCalendarPathJson: "null",
-                      },
-                      syncType: "NONE",
-                    },
-                  ],
-                };
-              }),
-            });
-          });
-        }
-      );
-    },
   },
   setup() {
     const config = configStore();
@@ -138,15 +107,14 @@ export default {
   },
   created() {
     this.config.activateSync(localStorage.getItem("user"));
-    this.config.configDb
-      .changes({
-        since: "now",
-        live: true,
-      })
-      .on("change", () => {
-        this.loadGoogleAccounts();
+    const instance = this;
+    const googleAccountLoader = () => {
+      instance.config.loadGoogleAccounts().then((res) => {
+        instance.googleAccounts = res;
       });
-    this.loadGoogleAccounts();
+    };
+    this.config.registerChangesHandler(googleAccountLoader);
+    googleAccountLoader();
   },
   components: { JsonEditorVue },
 };
