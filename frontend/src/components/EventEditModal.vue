@@ -230,22 +230,41 @@
               label="Event type"
               class="q-mb-sm"
             />
-            <q-btn
-              v-if="eventForm.extendedProps.ReadWriteExternalEvent.Google"
-              push
-              color="primary"
-              label="Expert edit other fields"
-            >
-              <q-popup-proxy
-                cover
-                transition-show="scale"
-                transition-hide="scale"
-              >
-                <JsonEditorVue
-                  v-model="eventForm.extendedProps.ReadWriteExternalEvent"
-                />
-              </q-popup-proxy>
-            </q-btn>
+            <div v-if="eventForm.extendedProps.ReadWriteExternalEvent.Google">
+              <q-btn push color="primary" label="Expert edit other fields">
+                <q-popup-proxy
+                  cover
+                  transition-show="scale"
+                  transition-hide="scale"
+                >
+                  <JsonEditorVue
+                    v-model="eventForm.extendedProps.ReadWriteExternalEvent"
+                  />
+                </q-popup-proxy>
+              </q-btn>
+              <q-btn
+                push
+                color="negative"
+                label="Remove from external calendar"
+                @click="removeFromExternal()"
+                v-close-popup
+              ></q-btn>
+            </div>
+            <div v-else>
+              <q-btn-dropdown color="primary" label="Move to external Calendar">
+                <q-item
+                  v-for="calendar in externalCalendars"
+                  clickable
+                  @click="addReadWriteExternalEvent(calendar)"
+                  :key="calendar"
+                  v-close-popup
+                >
+                  <q-item-section>
+                    <q-item-label>{{ calendar }}</q-item-label>
+                  </q-item-section>
+                </q-item>
+              </q-btn-dropdown>
+            </div>
           </q-card-section>
           <q-card-actions align="right">
             <q-btn
@@ -263,6 +282,7 @@
   </q-dialog>
 </template>
 <script>
+import { configStore } from "../stores/config.js";
 import { reactive } from "vue";
 import { date } from "quasar";
 import JsonEditorVue from "json-editor-vue";
@@ -272,10 +292,26 @@ export default {
   props: ["eventToOpen"],
   emits: ["eventSaved", "eventDeleted"],
   setup() {
+    const config = configStore();
     return {
+      config,
       eventForm: {},
       eventTypeOptions: ["Event", "Task", "Habit"],
+      externalCalendars: [],
     };
+  },
+  created() {
+    this.config.activateSync(localStorage.getItem("user"));
+    const instance = this;
+    const googleAccountLoader = () => {
+      instance.config.loadGoogleAccounts().then((res) => {
+        instance.externalCalendars = res.flatMap((r) =>
+          r.children.map((c) => r.label + "->" + c.label)
+        );
+      });
+    };
+    this.config.registerChangesHandler(googleAccountLoader);
+    googleAccountLoader();
   },
   beforeUpdate() {
     this.eventForm = reactive({
@@ -315,6 +351,22 @@ export default {
         eventFormCopy.endTime
       );
       this.$emit("eventSaved", eventFormCopy);
+    },
+    addReadWriteExternalEvent(calendar) {
+      if (calendar.startsWith("google-")) {
+        this.eventForm.extendedProps.ReadWriteExternalEvent = {
+          GoogleCalendarPath: {
+            GoogleAccountId: calendar.split("->")[0].substring(7),
+            GoogleCalendarId: calendar.split("->")[1],
+          },
+        };
+      }
+    },
+    removeFromExternal() {
+      this.$emit("eventDeleted", this.eventForm);
+      this.eventForm.id = "kaboome-" + Number(new Date());
+      this.eventForm.extendedProps.rev = null;
+      this.eventForm.extendedProps.ReadWriteExternalEvent = {};
     },
     convertStringDateTimeToDateObject(d, t) {
       return date.extractDate(d + " " + t, "YYYY/MM/DD HH:mm");
