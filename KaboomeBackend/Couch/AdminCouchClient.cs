@@ -76,12 +76,12 @@ namespace KaboomeBackend.Couch
             var content = (await client.Documents.GetAsync(id)).Content;
             return JsonConvert.DeserializeObject<KaboomeEvent?>(content ?? "");
         }
-        public async Task<List<KaboomeEvent?>> GetEventChanges(string name, string authSessionCookie, string? since = null)
+        public async Task<(string, List<KaboomeEvent?>)> GetEventChanges(string name, string authSessionCookie, string? since = null)
         {
             var client = new MyCouchClient(this.connectionUrl, EventDb(name));
             var getChangesRequest = new GetChangesRequest { Feed = ChangesFeed.Normal, IncludeDocs = true, Since = since };
             var changes = await client.Changes.GetAsync(getChangesRequest);
-            return changes.Results.Select(c => JsonConvert.DeserializeObject<KaboomeEvent>(c.IncludedDoc)).Select(ke =>
+            return (changes.LastSeq, changes.Results.Select(c => JsonConvert.DeserializeObject<KaboomeEvent>(c.IncludedDoc)).Select(ke =>
             {
                 // Sadly CouchDB doesn't include content of deleted docs. (makes sense, but we need the GoogleCalendarPath, to actually delete the event in google calendar)
                 if (ke?._deleted ?? false)
@@ -111,12 +111,7 @@ namespace KaboomeBackend.Couch
                     }
                 }
                 return ke;
-            }).ToList();
-        }
-        public async Task<string> GetLatestSeqNumberOfEventDb(string name) {
-            using var client = new MyCouchClient(this.connectionUrl, EventDb(name));
-            var info = await client.Database.GetAsync();
-            return info.UpdateSeq;
+            }).ToList());
         }
         private async Task CreateDbAndSetPermissions(string name, string databaseName)
         {

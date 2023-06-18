@@ -43,7 +43,8 @@ namespace KaboomeBackend.ThirdPartySyncers
             foreach (var googleCalendarConfig in (userConfig.GoogleCalendarConfigs ?? new()).Where(gcc => gcc.ShouldSync))
             {
                 //PUSH
-                foreach (var kaboomeEvent in await this.client.GetEventChanges(kaboomeUsername, this.authSessionCookie, googleCalendarConfig.Since))
+                var (latestSeq, changedEvents) = await this.client.GetEventChanges(kaboomeUsername, this.authSessionCookie, googleCalendarConfig.Since);
+                foreach (var kaboomeEvent in changedEvents)
                 {
                     await this.PushEventToGoogle(kaboomeUsername, service, googleCalendarConfig, kaboomeEvent);
                 }
@@ -63,7 +64,7 @@ namespace KaboomeBackend.ThirdPartySyncers
                     syncToken = events.NextSyncToken;
                 } while (listRequest.PageToken != null);
 
-                googleCalendarConfig.Since = await this.client.GetLatestSeqNumberOfEventDb(kaboomeUsername);
+                googleCalendarConfig.Since = latestSeq;
                 googleCalendarConfig.GoogleSyncToken = syncToken;
                 await this.client.WriteUserConfig(kaboomeUsername, userConfig._id, userConfig);
             }
