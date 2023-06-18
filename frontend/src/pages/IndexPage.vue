@@ -96,12 +96,16 @@ export default defineComponent({
       rerender: ref(false),
       zoomLevelIndex,
       zoomLevels,
+      lastBackendSync: Number(new Date()),
     };
   },
   mounted() {
     const instance = this;
     this.calendar.registerChangesHandler(() => {
       instance.$refs.fullcalendar.calendar.refetchEvents();
+      setTimeout(() => {
+        instance.syncNow();
+      }, 500);
     });
     const title =
       instance.$refs.fullcalendar.calendar.el.getElementsByClassName(
@@ -263,14 +267,23 @@ export default defineComponent({
         this.calendar.put(eventForm);
       }
     },
-    syncNow: function () {
-      fetch("/backend/third-party-sync-events", {
-        method: "POST",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
-        },
-      });
+    syncNow: function (isRetry = false) {
+      const timestamp = Number(new Date());
+      const minimumWaitBetweenSyncs = 2000;
+      if (timestamp - this.lastBackendSync > minimumWaitBetweenSyncs) {
+        this.lastBackendSync = timestamp;
+        fetch("/backend/third-party-sync-events", {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+        });
+      } else if (!isRetry) {
+        setTimeout(() => {
+          this.syncNow(true);
+        }, minimumWaitBetweenSyncs);
+      }
     },
     gotoDate: function (start) {
       this.$refs.fullcalendar.calendar.gotoDate(start.replaceAll("/", "-"));

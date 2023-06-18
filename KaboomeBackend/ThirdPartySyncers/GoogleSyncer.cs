@@ -154,10 +154,11 @@ namespace KaboomeBackend.ThirdPartySyncers
                 catch (GoogleApiException g)
                 {
 
-                    if(g.HttpStatusCode != System.Net.HttpStatusCode.Gone)
+                    if(g.HttpStatusCode == System.Net.HttpStatusCode.Gone || google == null)
                     {
-                        throw g;
+                        return;
                     }
+                    throw g;
                 }
 
             }
@@ -169,10 +170,13 @@ namespace KaboomeBackend.ThirdPartySyncers
                 google.Start = TimestampToEventDateTime(kaboomeEvent.StartTimestamp);
                 google.End = TimestampToEventDateTime(kaboomeEvent.EndTimestamp);
                 google.CreatedRaw = google.CreatedRaw.Replace("Z", ".000Z");
-                google.Recurrence = new List<string> {
+                if (kaboomeEvent.RRule != null)
+                {
+                    google.Recurrence = new List<string>{
                     kaboomeEvent.RRule,
                     ConvertToExDatesString(kaboomeEvent.ExDates)
                     };
+                }
                 await service.Events.Update(google, googleCalendarId, google.Id).ExecuteAsync();
             }
             else
