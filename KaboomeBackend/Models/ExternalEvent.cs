@@ -15,5 +15,6 @@ namespace KaboomeBackend.Models
         /// <inheritdoc cref="GoogleCalendarPath"/>
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public GoogleCalendarPath? GoogleCalendarPath { get; set; }
+        public SyncType SyncType { get; set; } = SyncType.ReadWrite;
     }
 }

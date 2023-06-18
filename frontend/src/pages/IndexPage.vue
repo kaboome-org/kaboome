@@ -200,6 +200,7 @@ export default defineComponent({
           eventType: "Event",
           isDone: false,
           ReadWriteExternalEvent: {},
+          WriteOnlyExternalEvents: [],
         },
       });
     };
@@ -237,6 +238,7 @@ export default defineComponent({
             eventType: "Event",
             isDone: false,
             ReadWriteExternalEvent: {},
+            WriteOnlyExternalEvents: [],
           },
         };
       }

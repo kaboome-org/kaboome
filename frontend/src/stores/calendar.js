@@ -25,6 +25,7 @@ function couchDocToFullcalendarEvent(doc) {
     extendedProps: {
       description: doc.Description,
       ReadWriteExternalEvent: doc.ReadWriteExternalEvent,
+      WriteOnlyExternalEvents: doc.WriteOnlyExternalEvents,
       eventType: doc.eventType ?? "Event",
       isDone: doc.isDone ?? false,
       rev: doc._rev,
@@ -44,6 +45,8 @@ function fullcalendarEventToCouchDoc(fullcalendarEvent) {
     Description: fullcalendarEvent.extendedProps?.description,
     ReadWriteExternalEvent:
       fullcalendarEvent.extendedProps?.ReadWriteExternalEvent,
+    WriteOnlyExternalEvents:
+      fullcalendarEvent.extendedProps?.WriteOnlyExternalEvents,
     eventType: fullcalendarEvent.extendedProps?.eventType,
     isDone: fullcalendarEvent.extendedProps?.isDone,
     RRule: fullcalendarEvent.extendedProps?.rrule?.split("\n")[1],

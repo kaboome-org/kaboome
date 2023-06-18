@@ -44,9 +44,11 @@ namespace KaboomeBackend.ThirdPartySyncers
             {
                 //PUSH
                 var (latestSeq, changedEvents) = await this.client.GetEventChanges(kaboomeUsername, this.authSessionCookie, googleCalendarConfig.Since);
+                var blacklistEventIds = new HashSet<string?>();
+                blacklistEventIds.UnionWith(googleCalendarConfig.BlackListEventIds);
                 foreach (var kaboomeEvent in changedEvents)
                 {
-                    await this.PushEventToGoogle(kaboomeUsername, service, googleCalendarConfig, kaboomeEvent);
+                    blacklistEventIds.UnionWith(await this.PushEventToGoogle(kaboomeUsername, service, googleCalendarConfig, kaboomeEvent));
                 }
                 //PULL
                 var listRequest = service.Events.List(googleCalendarConfig.GoogleCalendarPath.GoogleCalendarId);
@@ -58,7 +60,10 @@ namespace KaboomeBackend.ThirdPartySyncers
                     var events = await listRequest.ExecuteAsync();
                     foreach (var googleEvent in events.Items)
                     {
-                        await this.PullEventFromGoogle(kaboomeUsername, googleEvent, googleCalendarConfig.GoogleCalendarPath);
+                        if (!blacklistEventIds.Contains(googleEvent.Id))
+                        {
+                            await this.PullEventFromGoogle(kaboomeUsername, googleEvent, googleCalendarConfig.GoogleCalendarPath);
+                        }
                     }
                     listRequest.PageToken = events.NextPageToken;
                     syncToken = events.NextSyncToken;
@@ -66,6 +71,7 @@ namespace KaboomeBackend.ThirdPartySyncers
 
                 googleCalendarConfig.Since = latestSeq;
                 googleCalendarConfig.GoogleSyncToken = syncToken;
+                googleCalendarConfig.BlackListEventIds = blacklistEventIds.ToList();
                 await this.client.WriteUserConfig(kaboomeUsername, userConfig._id, userConfig);
             }
         }
@@ -124,25 +130,36 @@ namespace KaboomeBackend.ThirdPartySyncers
             }
         }
 
-        private async Task PushEventToGoogle(string kaboomeUsername, CalendarService service, GoogleCalendarConfig googleCalendarConfig, KaboomeEvent? kaboomeEvent)
+        private async Task<HashSet<string?>> PushEventToGoogle(string kaboomeUsername, CalendarService service, GoogleCalendarConfig googleCalendarConfig, KaboomeEvent? kaboomeEvent)
         {
             if (kaboomeEvent?.ReadWriteExternalEvent?.GoogleCalendarPath == googleCalendarConfig.GoogleCalendarPath)
             {
                 var google = kaboomeEvent.ReadWriteExternalEvent.Google;
                 var googleCalendarId = googleCalendarConfig.GoogleCalendarPath.GoogleCalendarId;
-                await this.PushGoogleEvent(kaboomeUsername, service, kaboomeEvent, google, googleCalendarId);
+                kaboomeEvent.ReadWriteExternalEvent.SyncType = SyncType.ReadWrite; // readwrite events can only be readwrite
+                await this.PushGoogleEvent(kaboomeUsername, service, kaboomeEvent, kaboomeEvent.ReadWriteExternalEvent);
             }
+            var blacklistEventIds = new HashSet<string?>();
             foreach (var writeOnlyExternalEvent in kaboomeEvent?.WriteOnlyExternalEvents ?? new())
             {
-                if (writeOnlyExternalEvent.Google != null && writeOnlyExternalEvent.GoogleCalendarPath != null)
+                if (writeOnlyExternalEvent.SyncType == SyncType.ReadWrite) // write only events can't be readwrite
                 {
-                    await this.PushGoogleEvent(kaboomeUsername, service, kaboomeEvent, writeOnlyExternalEvent.Google, writeOnlyExternalEvent.GoogleCalendarPath.GoogleCalendarId);
+                    writeOnlyExternalEvent.SyncType = SyncType.WriteOnlyNoDetail;
+                }
+
+                if (writeOnlyExternalEvent?.GoogleCalendarPath == googleCalendarConfig.GoogleCalendarPath)
+                {
+                    await this.PushGoogleEvent(kaboomeUsername, service, kaboomeEvent, writeOnlyExternalEvent);
+                    blacklistEventIds.Add(writeOnlyExternalEvent.Google?.Id);
                 }
             }
+            return blacklistEventIds;
         }
 
-        private async Task PushGoogleEvent(string kaboomeUsername, CalendarService service, KaboomeEvent? kaboomeEvent, Event? google, string googleCalendarId)
+        private async Task PushGoogleEvent(string kaboomeUsername, CalendarService service, KaboomeEvent? kaboomeEvent, ExternalEvent externalEvent)
         {
+            var googleCalendarId = externalEvent.GoogleCalendarPath?.GoogleCalendarId;
+            var google = externalEvent.Google;
             var googleEventId = google?.Id;
             if (kaboomeEvent._deleted == true)
             {
@@ -170,6 +187,7 @@ namespace KaboomeBackend.ThirdPartySyncers
                 google.Start = TimestampToEventDateTime(kaboomeEvent.StartTimestamp);
                 google.End = TimestampToEventDateTime(kaboomeEvent.EndTimestamp);
                 google.CreatedRaw = google.CreatedRaw.Replace("Z", ".000Z");
+
                 if (kaboomeEvent.RRule != null)
                 {
                     google.Recurrence = new List<string>{
@@ -177,6 +195,10 @@ namespace KaboomeBackend.ThirdPartySyncers
                     ConvertToExDatesString(kaboomeEvent.ExDates)
                     };
                 }
+
+                var refetched = await service.Events.Get(googleCalendarId, google.Id).ExecuteAsync();
+                google.ETag = refetched.ETag;
+                google.Sequence = refetched.Sequence;
                 await service.Events.Update(google, googleCalendarId, google.Id).ExecuteAsync();
             }
             else
@@ -196,9 +218,18 @@ namespace KaboomeBackend.ThirdPartySyncers
                     ConvertToExDatesString(kaboomeEvent.ExDates)
                     };
                 }
-                await service.Events.Insert(google, googleCalendarId).ExecuteAsync();
-                // Will be added by pull sync again (with a correct event id generated by google)
-                await this.client.DeleteKaboomeEvent(kaboomeUsername, kaboomeEvent._id, kaboomeEvent._rev);
+                var inserted = await service.Events.Insert(google, googleCalendarId).ExecuteAsync();
+
+                if (externalEvent.SyncType == SyncType.ReadWrite)
+                {
+                    // Will be added by pull sync again (with a correct event id generated by google)
+                    await this.client.DeleteKaboomeEvent(kaboomeUsername, kaboomeEvent._id, kaboomeEvent._rev);
+                }
+                else
+                {
+                    externalEvent.Google = inserted;
+                    await this.client.WriteKaboomeEvent(kaboomeUsername, kaboomeEvent._id, kaboomeEvent);
+                }
             }
         }
 

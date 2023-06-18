@@ -265,6 +265,17 @@
                 </q-item>
               </q-btn-dropdown>
             </div>
+            <q-btn push color="primary" label="Edit WriteOnlyExternalEvents">
+              <q-popup-proxy
+                cover
+                transition-show="scale"
+                transition-hide="scale"
+              >
+                <JsonEditorVue
+                  v-model="eventForm.extendedProps.WriteOnlyExternalEvents"
+                />
+              </q-popup-proxy>
+            </q-btn>
           </q-card-section>
           <q-card-actions align="right">
             <q-btn
@@ -328,6 +339,8 @@ export default {
         isDone: this.eventToOpen.extendedProps?.isDone,
         ReadWriteExternalEvent:
           this.eventToOpen.extendedProps?.ReadWriteExternalEvent,
+        WriteOnlyExternalEvents:
+          this.eventToOpen.extendedProps?.WriteOnlyExternalEvents,
         rrule: this.eventToOpen.extendedProps?.rrule,
       },
     });
@@ -340,6 +353,13 @@ export default {
       ) {
         eventFormCopy.extendedProps.ReadWriteExternalEvent = JSON.parse(
           eventFormCopy.extendedProps.ReadWriteExternalEvent
+        );
+      }
+      if (
+        typeof eventFormCopy.extendedProps.WriteOnlyExternalEvents == "string"
+      ) {
+        eventFormCopy.extendedProps.WriteOnlyExternalEvents = JSON.parse(
+          eventFormCopy.extendedProps.WriteOnlyExternalEvents
         );
       }
       eventFormCopy.start = this.convertStringDateTimeToDateObject(
