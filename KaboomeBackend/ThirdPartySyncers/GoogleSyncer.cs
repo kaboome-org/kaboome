@@ -161,6 +161,7 @@ namespace KaboomeBackend.ThirdPartySyncers
             var googleCalendarId = externalEvent.GoogleCalendarPath?.GoogleCalendarId;
             var google = externalEvent.Google;
             var googleEventId = google?.Id;
+            var syncType = externalEvent.SyncType;
             if (kaboomeEvent._deleted == true)
             {
                 // Delete
@@ -182,8 +183,16 @@ namespace KaboomeBackend.ThirdPartySyncers
             else if (google?.Id != null)
             {
                 // Update
-                google.Summary = kaboomeEvent.Title;
-                google.Description = kaboomeEvent.Description;
+                if (syncType != SyncType.WriteOnlyNoDetail)
+                {
+                    google.Summary = kaboomeEvent.Title;
+                    google.Description = kaboomeEvent.Description;
+                }
+                else
+                {
+                    google.Summary = "Blocked";
+                    google.Description = "";
+                }
                 google.Start = TimestampToEventDateTime(kaboomeEvent.StartTimestamp);
                 google.End = TimestampToEventDateTime(kaboomeEvent.EndTimestamp);
                 google.CreatedRaw = google.CreatedRaw.Replace("Z", ".000Z");
@@ -206,11 +215,20 @@ namespace KaboomeBackend.ThirdPartySyncers
                 // Insert
                 google = new()
                 {
-                    Summary = kaboomeEvent.Title,
-                    Description = kaboomeEvent.Description,
                     Start = TimestampToEventDateTime(kaboomeEvent.StartTimestamp),
                     End = TimestampToEventDateTime(kaboomeEvent.EndTimestamp)
                 };
+                // Update
+                if (syncType != SyncType.WriteOnlyNoDetail)
+                {
+                    google.Summary = kaboomeEvent.Title;
+                    google.Description = kaboomeEvent.Description;
+                }
+                else
+                {
+                    google.Summary = "Blocked";
+                    google.Description = "";
+                }
                 if (kaboomeEvent.RRule != null)
                 {
                     google.Recurrence = new List<string>{
