@@ -44,11 +44,10 @@ namespace KaboomeBackend.ThirdPartySyncers
             {
                 //PUSH
                 var (latestSeq, changedEvents) = await this.client.GetEventChanges(kaboomeUsername, this.authSessionCookie, googleCalendarConfig.Since);
-                var blacklistEventIds = new HashSet<string?>();
-                blacklistEventIds.UnionWith(googleCalendarConfig.BlackListEventIds);
+                var blacklistEventIds = new Dictionary<string, string>(googleCalendarConfig.BlackListEventIds);
                 foreach (var kaboomeEvent in changedEvents)
                 {
-                    blacklistEventIds.UnionWith(await this.PushEventToGoogle(kaboomeUsername, service, googleCalendarConfig, kaboomeEvent));
+                    await this.PushEventToGoogle(kaboomeUsername, service, googleCalendarConfig, kaboomeEvent, blacklistEventIds);
                 }
                 //PULL
                 var listRequest = service.Events.List(googleCalendarConfig.GoogleCalendarPath.GoogleCalendarId);
@@ -60,7 +59,7 @@ namespace KaboomeBackend.ThirdPartySyncers
                     var events = await listRequest.ExecuteAsync();
                     foreach (var googleEvent in events.Items)
                     {
-                        if (!blacklistEventIds.Contains(googleEvent.Id))
+                        if (!blacklistEventIds.ContainsKey(googleEvent.Id))
                         {
                             await this.PullEventFromGoogle(kaboomeUsername, googleEvent, googleCalendarConfig.GoogleCalendarPath);
                         }
@@ -130,7 +129,8 @@ namespace KaboomeBackend.ThirdPartySyncers
             }
         }
 
-        private async Task<HashSet<string?>> PushEventToGoogle(string kaboomeUsername, CalendarService service, GoogleCalendarConfig googleCalendarConfig, KaboomeEvent? kaboomeEvent)
+        private async Task PushEventToGoogle(
+            string kaboomeUsername, CalendarService service, GoogleCalendarConfig googleCalendarConfig, KaboomeEvent? kaboomeEvent, Dictionary<string, string> blacklistEventIds)
         {
             if (kaboomeEvent?.ReadWriteExternalEvent?.GoogleCalendarPath == googleCalendarConfig.GoogleCalendarPath)
             {
@@ -139,7 +139,28 @@ namespace KaboomeBackend.ThirdPartySyncers
                 kaboomeEvent.ReadWriteExternalEvent.SyncType = SyncType.ReadWrite; // readwrite events can only be readwrite
                 await this.PushGoogleEvent(kaboomeUsername, service, kaboomeEvent, kaboomeEvent.ReadWriteExternalEvent);
             }
-            var blacklistEventIds = new HashSet<string?>();
+            if (kaboomeEvent._deleted != true)
+            {
+                var expectedWriteOnlyEvents = blacklistEventIds.Where(kv => kv.Value == kaboomeEvent._id).Select(kv => kv.Key).ToHashSet();
+                var writeOnlyExternalEvents = (kaboomeEvent?.WriteOnlyExternalEvents ?? new()).Select(e => e.Google?.Id ?? "");
+                expectedWriteOnlyEvents.ExceptWith(writeOnlyExternalEvents);
+                foreach (var deletedWriteOnly in expectedWriteOnlyEvents)
+                {
+                    try
+                    {
+                        await service.Events.Delete(googleCalendarConfig.GoogleCalendarPath.GoogleCalendarId, deletedWriteOnly).ExecuteAsync();
+                        blacklistEventIds.Remove(deletedWriteOnly);
+                    }
+                    catch (GoogleApiException g)
+                    {
+
+                        if (g.HttpStatusCode != System.Net.HttpStatusCode.Gone)
+                        {
+                            throw g;
+                        }
+                    }
+                }
+            }
             foreach (var writeOnlyExternalEvent in kaboomeEvent?.WriteOnlyExternalEvents ?? new())
             {
                 if (writeOnlyExternalEvent.SyncType == SyncType.ReadWrite) // write only events can't be readwrite
@@ -150,10 +171,9 @@ namespace KaboomeBackend.ThirdPartySyncers
                 if (writeOnlyExternalEvent?.GoogleCalendarPath == googleCalendarConfig.GoogleCalendarPath)
                 {
                     await this.PushGoogleEvent(kaboomeUsername, service, kaboomeEvent, writeOnlyExternalEvent);
-                    blacklistEventIds.Add(writeOnlyExternalEvent.Google?.Id);
+                    blacklistEventIds[writeOnlyExternalEvent.Google?.Id ?? ""] = kaboomeEvent._id;
                 }
             }
-            return blacklistEventIds;
         }
 
         private async Task PushGoogleEvent(string kaboomeUsername, CalendarService service, KaboomeEvent? kaboomeEvent, ExternalEvent externalEvent)

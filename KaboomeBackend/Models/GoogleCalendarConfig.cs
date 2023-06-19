@@ -12,7 +12,7 @@ namespace KaboomeBackend.Models
         /// <summary>
         /// These event Ids are WriteOnlyEvents and don't need to be pulled 
         /// </summary>
-        public List<string?> BlackListEventIds { get; set; } = new();
+        public List<KeyValuePair<string, string>> BlackListEventIds { get; set; } = new();
         /// <summary>
         /// This is a cursor used for the event feed 
         /// </summary>
