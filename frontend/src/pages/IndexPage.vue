@@ -43,6 +43,7 @@
 import { defineComponent, ref } from "vue";
 import { loginStore } from "../stores/login.js";
 import { calendarStore } from "../stores/calendar.js";
+import { configStore } from "../stores/config";
 import { useLocalStorage } from "@vueuse/core";
 import FullCalendar from "@fullcalendar/vue3";
 import timeGridPlugin from "@fullcalendar/timegrid";
@@ -52,6 +53,7 @@ import GotoDateModal from "src/components/GotoDateModal.vue";
 import RecurringEventsEditModal from "src/components/RecurringEventsEditModal.vue";
 import interactionPlugin from "@fullcalendar/interaction";
 import { date } from "quasar";
+import { writeOnlyEvents } from "../helpers/writeOnlyEventsGenerator";
 
 const zoomLevels = [
   "00:05:00",
@@ -67,6 +69,9 @@ export default defineComponent({
     const login = loginStore();
     const calendar = calendarStore();
     calendar.activateSync(login.user);
+    const config = configStore();
+    config.activateSync(login.user);
+    const gaccs = [];
     const zoomLevelIndex = useLocalStorage("zoomLevelIndex", 0);
 
     const calendarOptions = {
@@ -85,6 +90,8 @@ export default defineComponent({
     };
     return {
       calendar,
+      googleAccounts: ref(gaccs),
+      config,
       eventForm: {},
       previousEvent: {},
       proposedChangedEvent: {},
@@ -118,6 +125,13 @@ export default defineComponent({
   },
   created() {
     const instance = this;
+    const googleAccountLoader = () => {
+      instance.config.loadGoogleAccounts().then((res) => {
+        instance.googleAccounts = res;
+      });
+    };
+    this.config.registerChangesHandler(googleAccountLoader);
+    googleAccountLoader();
     this.calendarOptions.events = async function (
       info,
       successCallback,
@@ -200,7 +214,13 @@ export default defineComponent({
           eventType: "Event",
           isDone: false,
           ReadWriteExternalEvent: {},
-          WriteOnlyExternalEvents: [],
+          WriteOnlyExternalEvents: writeOnlyEvents(
+            {
+              vendor: "kaboome",
+              vendorCalendarPathJson: "null",
+            },
+            this.googleAccounts
+          ),
         },
       });
     };
@@ -238,7 +258,13 @@ export default defineComponent({
             eventType: "Event",
             isDone: false,
             ReadWriteExternalEvent: {},
-            WriteOnlyExternalEvents: [],
+            WriteOnlyExternalEvents: writeOnlyEvents(
+              {
+                vendor: "kaboome",
+                vendorCalendarPathJson: "null",
+              },
+              this.googleAccounts
+            ),
           },
         };
       }
@@ -271,7 +297,7 @@ export default defineComponent({
     },
     syncNow: function (isRetry = false) {
       const timestamp = Number(new Date());
-      const minimumWaitBetweenSyncs = 2000;
+      const minimumWaitBetweenSyncs = 5000;
       if (timestamp - this.lastBackendSync > minimumWaitBetweenSyncs) {
         this.lastBackendSync = timestamp;
         fetch("/backend/third-party-sync-events", {
