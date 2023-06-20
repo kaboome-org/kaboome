@@ -228,7 +228,9 @@ namespace KaboomeBackend.ThirdPartySyncers
                 var refetched = await service.Events.Get(googleCalendarId, google.Id).ExecuteAsync();
                 google.ETag = refetched.ETag;
                 google.Sequence = refetched.Sequence;
-                await service.Events.Update(google, googleCalendarId, google.Id).ExecuteAsync();
+                var updated = await service.Events.Update(google, googleCalendarId, google.Id).ExecuteAsync();
+                externalEvent.Google = updated;
+                await this.client.WriteKaboomeEvent(kaboomeUsername, kaboomeEvent._id, kaboomeEvent);
             }
             else
             {
