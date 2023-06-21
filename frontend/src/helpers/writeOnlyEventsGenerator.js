@@ -14,7 +14,6 @@ export function writeOnlyEvents(source, configuration) {
                 calendarPath.GoogleCalendarId) ||
             source.vendor == "kaboome"
           ) {
-            debugger;
             ret.push({
               GoogleCalendarPath: {
                 GoogleAccountId: googleAccount.label.substring(7),
