@@ -26,6 +26,11 @@ namespace KaboomeBackend.Models
         /// Should this calendar be synced?
         /// </summary>
         public bool ShouldSync { get; set; }
+        /// <summary>
+        /// Configures which WriteOnlyExternalEvents are created. Only used by the frontend
+        /// </summary>
+        public List<CalendarSyncConfig> SyncFromCalendars { get; set; } = new();
+
 
     }
 }

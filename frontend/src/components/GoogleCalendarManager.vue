@@ -60,8 +60,11 @@
               transition-show="scale"
               transition-hide="scale"
               v-on:hide="this.setSyncFromCalendars(prop.node)"
+              v-on:before-show="
+                this.openSyncFromCalendars = prop.node.SyncFromCalendars
+              "
             >
-              <JsonEditorVue v-model="prop.node.syncFromCalendars" />
+              <JsonEditorVue v-model="this.openSyncFromCalendars" />
             </q-popup-proxy>
           </q-btn>
         </div>
@@ -87,10 +90,10 @@ export default {
       const target = node.doc.GoogleCalendarConfigs.find(
         (v) => v.GoogleCalendarPath.GoogleCalendarId == node.label
       );
-      if (typeof node.syncFromCalendars == "string") {
-        target.syncFromCalendars = JSON.parse(node.syncFromCalendars);
+      if (typeof this.openSyncFromCalendars == "string") {
+        target.SyncFromCalendars = JSON.parse(this.openSyncFromCalendars);
       } else {
-        target.syncFromCalendars = node.syncFromCalendars;
+        target.SyncFromCalendars = this.openSyncFromCalendars;
       }
 
       this.config.configDb.put(node.doc);
@@ -99,10 +102,10 @@ export default {
   setup() {
     const config = configStore();
     const gaccs = [];
-
     return {
       config,
       googleAccounts: ref(gaccs),
+      openSyncFromCalendars: [],
     };
   },
   created() {

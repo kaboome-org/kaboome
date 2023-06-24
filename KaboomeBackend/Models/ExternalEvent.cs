@@ -12,9 +12,10 @@ namespace KaboomeBackend.Models
         /// </summary>
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public Event? Google { get; set; }
-        /// <inheritdoc cref="GoogleCalendarPath"/>
+        /// <inheritdoc cref="Models.GoogleCalendarPath"/>
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public GoogleCalendarPath? GoogleCalendarPath { get; set; }
+        /// <inheritdoc cref="Models.SyncType"/>
         public SyncType SyncType { get; set; } = SyncType.ReadWrite;
     }
 }
