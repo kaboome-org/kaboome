@@ -65,6 +65,7 @@ export const calendarStore = defineStore("calendar", {
     events: async function (gaccs) {
       //Convert to fullcalendar events
       const ret = [];
+      const instance = this;
       await this.calendarDb.allDocs(
         { include_docs: true, descending: true },
         function (err, doc) {
@@ -77,7 +78,7 @@ export const calendarStore = defineStore("calendar", {
                 fullcalendarEvent
               );
               if (changed) {
-                this.put(fullcalendarEvent);
+                instance.put(fullcalendarEvent);
               }
             }
             ret.push(fullcalendarEvent);
