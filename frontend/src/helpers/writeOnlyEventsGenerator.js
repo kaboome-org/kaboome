@@ -4,8 +4,10 @@ export function writeOnlyEvents(source, configuration) {
   configuration.forEach((googleAccount) => {
     googleAccount.children.forEach((googleCalendar) => {
       googleCalendar.SyncFromCalendars.forEach((calendarSyncConfig) => {
-        const calendarPath = calendarSyncConfig.VendorCalendarPathJson;
         if (source.Vendor == calendarSyncConfig.Vendor) {
+          const calendarPath = JSON.parse(
+            calendarSyncConfig.VendorCalendarPathJson
+          );
           if (
             (source.Vendor == "google" &&
               sourceCalendarPath.GoogleAccountId ==
@@ -41,7 +43,7 @@ export function addOrMergeWriteOnlyEvents(row, gaccs, fullcalendarEvent) {
     },
     gaccs
   );
-  const ret = false;
+  let ret = false;
   const WriteOnlyEvents =
     fullcalendarEvent.extendedProps.WriteOnlyExternalEvents;
   if (WriteOnlyEvents.length == 0) {

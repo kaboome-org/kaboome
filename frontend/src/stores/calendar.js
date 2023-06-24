@@ -77,7 +77,7 @@ export const calendarStore = defineStore("calendar", {
                 fullcalendarEvent
               );
               if (changed) {
-                put(fullcalendarEvent);
+                this.put(fullcalendarEvent);
               }
             }
             ret.push(fullcalendarEvent);
