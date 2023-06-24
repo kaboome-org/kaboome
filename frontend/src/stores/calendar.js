@@ -1,3 +1,4 @@
+import { addOrMergeWriteOnlyEvents } from "../helpers/writeOnlyEventsGenerator";
 import { defineStore } from "pinia";
 
 function timestampToDTStart(time) {
@@ -61,14 +62,25 @@ export const calendarStore = defineStore("calendar", {
     syncing: false,
   }),
   actions: {
-    events: async function (start, end) {
+    events: async function (gaccs) {
       //Convert to fullcalendar events
       const ret = [];
       await this.calendarDb.allDocs(
         { include_docs: true, descending: true },
         function (err, doc) {
           doc.rows.forEach((row) => {
-            ret.push(couchDocToFullcalendarEvent(row.doc));
+            const fullcalendarEvent = couchDocToFullcalendarEvent(row.doc);
+            if (gaccs != null && gaccs.length > 0) {
+              const changed = addOrMergeWriteOnlyEvents(
+                row,
+                gaccs,
+                fullcalendarEvent
+              );
+              if (changed) {
+                put(fullcalendarEvent);
+              }
+            }
+            ret.push(fullcalendarEvent);
           });
         }
       );

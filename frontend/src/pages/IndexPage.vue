@@ -127,7 +127,13 @@ export default defineComponent({
     const instance = this;
     const googleAccountLoader = () => {
       instance.config.loadGoogleAccounts().then((res) => {
+        const previouslyEmpty =
+          instance.googleAccounts == null ||
+          instance.googleAccounts.length == 0;
         instance.googleAccounts = res;
+        if (previouslyEmpty && res.length > 0) {
+          instance.$refs.fullcalendar.calendar.refetchEvents();
+        }
       });
     };
     this.config.registerChangesHandler(googleAccountLoader);
@@ -137,9 +143,7 @@ export default defineComponent({
       successCallback,
       failureCallback
     ) {
-      successCallback(
-        await instance.calendar.events(info.start.valueOf(), info.end.valueOf())
-      );
+      successCallback(await instance.calendar.events(instance.googleAccounts));
     };
     this.calendarOptions.customButtons = {
       zoomout: {
