@@ -216,8 +216,8 @@ export default defineComponent({
           ReadWriteExternalEvent: {},
           WriteOnlyExternalEvents: writeOnlyEvents(
             {
-              vendor: "kaboome",
-              vendorCalendarPathJson: "null",
+              Vendor: "kaboome",
+              VendorCalendarPathJson: "null",
             },
             this.googleAccounts
           ),
@@ -260,8 +260,8 @@ export default defineComponent({
             ReadWriteExternalEvent: {},
             WriteOnlyExternalEvents: writeOnlyEvents(
               {
-                vendor: "kaboome",
-                vendorCalendarPathJson: "null",
+                Vendor: "kaboome",
+                VendorCalendarPathJson: "null",
               },
               this.googleAccounts
             ),

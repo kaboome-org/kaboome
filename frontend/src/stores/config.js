@@ -53,7 +53,7 @@ export const configStore = defineStore("config", {
                   icon: "calendar_month",
                   doc: row.doc,
                   shouldSync: v.ShouldSync,
-                  syncFromCalendars: v.syncFromCalendars ?? [],
+                  SyncFromCalendars: v.SyncFromCalendars ?? [],
                 };
               }),
             });

@@ -274,6 +274,8 @@
                 <JsonEditorVue
                   v-model="eventForm.extendedProps.WriteOnlyExternalEvents"
                 />
+                <!--TODO: When this has a proper component set
+                  ManuallyEdited on change of individual wo events-->
               </q-popup-proxy>
             </q-btn>
           </q-card-section>
