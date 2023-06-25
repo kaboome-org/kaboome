@@ -123,3 +123,254 @@ describe("writeOnlyEvents method tests", () => {
     expect(ret.length).toBe(0);
   });
 });
+
+describe("addOrMergeWriteOnlyEvents method tests", () => {
+  it("should add a WO-event if its kaboome source is configured, but its not yet part of the fullcalendar event", () => {
+    const row = {
+      doc: {
+        _id: "kaboome-1234",
+      },
+    };
+    const configuration = [
+      {
+        label: "google-test@gmail.com",
+        children: [
+          {
+            label: "test-calendar@gmail.com",
+            SyncFromCalendars: [
+              {
+                Vendor: "kaboome",
+                VendorCalendarPathJson: "null",
+                SyncType: 2,
+              },
+            ],
+          },
+        ],
+      },
+    ];
+    const fullcalendarEvent = {
+      extendedProps: {
+        WriteOnlyExternalEvents: [],
+      },
+    };
+    const ret = addOrMergeWriteOnlyEvents(
+      row,
+      configuration,
+      fullcalendarEvent
+    );
+    expect(ret).toBe(true);
+    expect(fullcalendarEvent.extendedProps.WriteOnlyExternalEvents.length).toBe(
+      1
+    );
+    expect(
+      fullcalendarEvent.extendedProps.WriteOnlyExternalEvents[0].SyncType
+    ).toBe(2);
+    expect(
+      fullcalendarEvent.extendedProps.WriteOnlyExternalEvents[0]
+        .GoogleCalendarPath.GoogleAccountId
+    ).toBe("test@gmail.com");
+    expect(
+      fullcalendarEvent.extendedProps.WriteOnlyExternalEvents[0]
+        .GoogleCalendarPath.GoogleCalendarId
+    ).toBe("test-calendar@gmail.com");
+  });
+  it("should return false if configuration requires no event, and the fullcalendar event doesn't have any as well", () => {
+    const row = {
+      doc: {
+        _id: "google-1234",
+        ReadWriteExternalEvent: { GoogleCalendarPath: {} },
+      },
+    };
+    const configuration = [
+      {
+        label: "google-test@gmail.com",
+        children: [
+          {
+            label: "test-calendar@gmail.com",
+            SyncFromCalendars: [
+              {
+                Vendor: "kaboome",
+                VendorCalendarPathJson: "null",
+                SyncType: 2,
+              },
+            ],
+          },
+        ],
+      },
+    ];
+    const fullcalendarEvent = {
+      extendedProps: {
+        WriteOnlyExternalEvents: [],
+      },
+    };
+    const ret = addOrMergeWriteOnlyEvents(
+      row,
+      configuration,
+      fullcalendarEvent
+    );
+    expect(ret).toBe(false);
+    expect(fullcalendarEvent.extendedProps.WriteOnlyExternalEvents.length).toBe(
+      0
+    );
+  });
+  it(`should change WO-event if its kaboome source is configured, but its fullcalendar
+   event doesn't match the configuration`, () => {
+    const row = {
+      doc: {
+        _id: "kaboome-1234",
+      },
+    };
+    const configuration = [
+      {
+        label: "google-test@gmail.com",
+        children: [
+          {
+            label: "test-calendar@gmail.com",
+            SyncFromCalendars: [
+              {
+                Vendor: "kaboome",
+                VendorCalendarPathJson: "null",
+                SyncType: 2,
+              },
+            ],
+          },
+        ],
+      },
+    ];
+    const fullcalendarEvent = {
+      extendedProps: {
+        WriteOnlyExternalEvents: [
+          {
+            GoogleCalendarPath: {
+              GoogleAccountId: "test@gmail.com",
+              GoogleCalendarId: "test-calendar@gmail.com",
+            },
+            ManuallyEdited: false,
+            SyncType: 1,
+          },
+        ],
+      },
+    };
+    const ret = addOrMergeWriteOnlyEvents(
+      row,
+      configuration,
+      fullcalendarEvent
+    );
+    expect(ret).toBe(true);
+    expect(fullcalendarEvent.extendedProps.WriteOnlyExternalEvents.length).toBe(
+      1
+    );
+    expect(
+      fullcalendarEvent.extendedProps.WriteOnlyExternalEvents[0].SyncType
+    ).toBe(2);
+    expect(
+      fullcalendarEvent.extendedProps.WriteOnlyExternalEvents[0]
+        .GoogleCalendarPath.GoogleAccountId
+    ).toBe("test@gmail.com");
+    expect(
+      fullcalendarEvent.extendedProps.WriteOnlyExternalEvents[0]
+        .GoogleCalendarPath.GoogleCalendarId
+    ).toBe("test-calendar@gmail.com");
+  });
+  it(`should change WO-event if its kaboome source is configured, but its fullcalendar
+   event doesn't match the configuration`, () => {
+    const row = {
+      doc: {
+        _id: "kaboome-1234",
+      },
+    };
+    const configuration = [
+      {
+        label: "google-test@gmail.com",
+        children: [
+          {
+            label: "test-calendar@gmail.com",
+            SyncFromCalendars: [
+              {
+                Vendor: "kaboome",
+                VendorCalendarPathJson: "null",
+                SyncType: 2,
+              },
+            ],
+          },
+        ],
+      },
+    ];
+    const fullcalendarEvent = {
+      extendedProps: {
+        WriteOnlyExternalEvents: [
+          {
+            GoogleCalendarPath: {
+              GoogleAccountId: "test@gmail.com",
+              GoogleCalendarId: "test-calendar@gmail.com",
+            },
+            ManuallyEdited: true,
+            SyncType: 1,
+          },
+        ],
+      },
+    };
+    const ret = addOrMergeWriteOnlyEvents(
+      row,
+      configuration,
+      fullcalendarEvent
+    );
+    expect(ret).toBe(false);
+    expect(fullcalendarEvent.extendedProps.WriteOnlyExternalEvents.length).toBe(
+      1
+    );
+    expect(
+      fullcalendarEvent.extendedProps.WriteOnlyExternalEvents[0].SyncType
+    ).toBe(1);
+    expect(
+      fullcalendarEvent.extendedProps.WriteOnlyExternalEvents[0]
+        .GoogleCalendarPath.GoogleAccountId
+    ).toBe("test@gmail.com");
+    expect(
+      fullcalendarEvent.extendedProps.WriteOnlyExternalEvents[0]
+        .GoogleCalendarPath.GoogleCalendarId
+    ).toBe("test-calendar@gmail.com");
+  });
+  it(`should remove WO-event if its kaboome source is not configured, but its fullcalendar
+   event exists`, () => {
+    const row = {
+      doc: {
+        _id: "kaboome-1234",
+      },
+    };
+    const configuration = [
+      {
+        label: "google-test@gmail.com",
+        children: [
+          {
+            label: "test-calendar@gmail.com",
+            SyncFromCalendars: [],
+          },
+        ],
+      },
+    ];
+    const fullcalendarEvent = {
+      extendedProps: {
+        WriteOnlyExternalEvents: [
+          {
+            GoogleCalendarPath: {
+              GoogleAccountId: "test@gmail.com",
+              GoogleCalendarId: "test-calendar@gmail.com",
+            },
+            ManuallyEdited: true,
+            SyncType: 1,
+          },
+        ],
+      },
+    };
+    const ret = addOrMergeWriteOnlyEvents(
+      row,
+      configuration,
+      fullcalendarEvent
+    );
+    expect(ret).toBe(true);
+    expect(fullcalendarEvent.extendedProps.WriteOnlyExternalEvents.length).toBe(
+      0
+    );
+  });
+});
