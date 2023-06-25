@@ -1,3 +1,5 @@
+coverage/
+# auto generated:
 .DS_Store
 .thumbs.db
 node_modules

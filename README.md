@@ -40,7 +40,9 @@ If you already have certificates, mount them as a volume on the frontend service
 
 Navigate to the `./frontend` folder and execute `quasar dev`.
 This should host a frontend at http://localhost:8000/-/.
-If you need a different port change the `devServer.port` in `./frontend/quasar.config.js.`
+If you need a different port change the `devServer.port` in `./frontend/quasar.config.js`.
+Consider running `yarn test:cover` and checking the HTML coverage report in `(./frontend/)coverage/index.html`,
+when working on unit tests.
 
 ### Backend only deployment
 

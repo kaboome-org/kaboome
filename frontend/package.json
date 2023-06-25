@@ -10,7 +10,8 @@
     "format": "prettier --write \"**/*.{js,vue,scss,html,md,json}\" --ignore-path .gitignore",
     "test": "echo \"See package.json => scripts for available tests.\" && exit 0",
     "test:unit": "vitest",
-    "test:unit:ci": "vitest run"
+    "test:unit:ci": "vitest run",
+    "test:cover": "vitest --coverage"
   },
   "dependencies": {
     "@fullcalendar/core": "^6.1.1",
@@ -35,6 +36,7 @@
     "@quasar/quasar-app-extension-testing-unit-vitest": "^0.2.1",
     "@vue/test-utils": "^2.0.0",
     "autoprefixer": "^10.4.2",
+    "c8": "^8.0.0",
     "eslint": "^8.10.0",
     "eslint-config-prettier": "^8.1.0",
     "eslint-plugin-vue": "^9.0.0",
