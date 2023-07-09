@@ -34,7 +34,6 @@ namespace KaboomeBackend.Extensions
         }
         public static WebApplication UseThirdPartyEndpoints(this WebApplication app, Uri couchDbUri)
         {
-            app.UseSyncEndpoint(couchDbUri);
             _ = app.MapGet(RedirectTheUserIntoTheGoogleAuthFlow, async (HttpRequest req, HttpResponse res, GoogleAuthorizationCodeFlow flow) =>
             {
                 var kaboomeUsername = await AuthHelper.GetAndValidateUsername(req, couchDbUri);
