@@ -44,6 +44,7 @@ import { defineComponent, ref } from "vue";
 import { loginStore } from "../stores/login.js";
 import { calendarStore } from "../stores/calendar.js";
 import { configStore } from "../stores/config";
+import { backendStore } from "../stores/backend";
 import { useLocalStorage } from "@vueuse/core";
 import FullCalendar from "@fullcalendar/vue3";
 import timeGridPlugin from "@fullcalendar/timegrid";
@@ -103,7 +104,7 @@ export default defineComponent({
       rerender: ref(false),
       zoomLevelIndex,
       zoomLevels,
-      lastBackendSync: Number(new Date()),
+      backend: backendStore(),
     };
   },
   mounted() {
@@ -111,7 +112,7 @@ export default defineComponent({
     this.calendar.registerChangesHandler(() => {
       instance.$refs.fullcalendar.calendar.refetchEvents();
       setTimeout(() => {
-        instance.syncNow();
+        instance.backend.syncNow();
       }, 500);
     });
     const title =
@@ -174,11 +175,11 @@ export default defineComponent({
       center: "title",
       left: "zoomout,zoomin",
     };
-    this.syncNow();
+    this.backend.syncNow();
     const syncTimer = setInterval(() => {
       if (instance.login.user) {
         try {
-          instance.syncNow();
+          instance.backend.syncNow();
         } catch (error) {
           console.warn(error);
         }
@@ -297,24 +298,6 @@ export default defineComponent({
         this.openRecurringEventsEditModal(eventForm, this.eventForm);
       } else {
         this.calendar.put(eventForm);
-      }
-    },
-    syncNow: function (isRetry = false) {
-      const timestamp = Number(new Date());
-      const minimumWaitBetweenSyncs = 5000;
-      if (timestamp - this.lastBackendSync > minimumWaitBetweenSyncs) {
-        this.lastBackendSync = timestamp;
-        fetch("/backend/third-party-sync-events", {
-          method: "POST",
-          headers: {
-            Accept: "application/json",
-            "Content-Type": "application/json",
-          },
-        });
-      } else if (!isRetry) {
-        setTimeout(() => {
-          this.syncNow(true);
-        }, minimumWaitBetweenSyncs);
       }
     },
     gotoDate: function (start) {
