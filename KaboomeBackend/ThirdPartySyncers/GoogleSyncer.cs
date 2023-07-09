@@ -67,7 +67,12 @@ namespace KaboomeBackend.ThirdPartySyncers
                     listRequest.PageToken = events.NextPageToken;
                     syncToken = events.NextSyncToken;
                 } while (listRequest.PageToken != null);
-
+                if (googleCalendarConfig.Since == latestSeq
+                    && googleCalendarConfig.GoogleSyncToken == syncToken
+                    && googleCalendarConfig.BlackListEventIds.SequenceEqual(blacklistEventIds.ToList()))
+                {
+                    continue;
+                }
                 googleCalendarConfig.Since = latestSeq;
                 googleCalendarConfig.GoogleSyncToken = syncToken;
                 googleCalendarConfig.BlackListEventIds = blacklistEventIds.ToList();
@@ -192,7 +197,7 @@ namespace KaboomeBackend.ThirdPartySyncers
                 catch (GoogleApiException g)
                 {
 
-                    if(g.HttpStatusCode == System.Net.HttpStatusCode.Gone || google == null)
+                    if (g.HttpStatusCode == System.Net.HttpStatusCode.Gone || google == null)
                     {
                         return;
                     }
@@ -226,6 +231,15 @@ namespace KaboomeBackend.ThirdPartySyncers
                 }
 
                 var refetched = await service.Events.Get(googleCalendarId, google.Id).ExecuteAsync();
+                if (refetched.Summary == google.Summary
+                    && refetched.Description == google.Description
+                    && EventDateTimeToTimestamp(refetched.Start) == kaboomeEvent.StartTimestamp
+                    && EventDateTimeToTimestamp(refetched.End) == kaboomeEvent.EndTimestamp
+                    && refetched.Recurrence?.FirstOrDefault(s => s.StartsWith("RRULE", StringComparison.InvariantCultureIgnoreCase)) == kaboomeEvent.RRule
+                    )
+                {
+                    return;
+                }
                 google.ETag = refetched.ETag;
                 google.Sequence = refetched.Sequence;
                 var updated = await service.Events.Update(google, googleCalendarId, google.Id).ExecuteAsync();
@@ -281,7 +295,7 @@ namespace KaboomeBackend.ThirdPartySyncers
         /// <returns>Exdate string</returns>
         private static string ConvertToExDatesString(List<long> exDates)
         {
-            if(exDates.Count == 0)
+            if (exDates.Count == 0)
             { return ""; }
             return "EXDATE:" + string.Join(",",
             exDates.Select(ed =>

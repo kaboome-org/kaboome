@@ -7,7 +7,6 @@ namespace KaboomeBackend.Extensions
     using Google.Apis.Services;
     using KaboomeBackend.Couch;
     using KaboomeBackend.Models;
-    using Newtonsoft.Json;
 
     public static partial class WebApplicationExtensions
     {
