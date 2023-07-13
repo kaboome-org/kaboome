@@ -272,8 +272,7 @@ describe("addOrMergeWriteOnlyEvents method tests", () => {
         .GoogleCalendarPath.GoogleCalendarId
     ).toBe("test-calendar@gmail.com");
   });
-  it(`should change WO-event if its kaboome source is configured, but its fullcalendar
-   event doesn't match the configuration`, () => {
+  it(`shouldn't change WO-event if its manually edited`, () => {
     const row = {
       doc: {
         _id: "kaboome-1234",
@@ -372,5 +371,63 @@ describe("addOrMergeWriteOnlyEvents method tests", () => {
     expect(fullcalendarEvent.extendedProps.WriteOnlyExternalEvents.length).toBe(
       0
     );
+  });
+  it("should return false if kaboome source is configured and its already part of the fullcalendar event", () => {
+    const row = {
+      doc: {
+        _id: "kaboome-1234",
+      },
+    };
+    const configuration = [
+      {
+        label: "google-test@gmail.com",
+        children: [
+          {
+            label: "test-calendar@gmail.com",
+            SyncFromCalendars: [
+              {
+                Vendor: "kaboome",
+                VendorCalendarPathJson: "null",
+                SyncType: 2,
+              },
+            ],
+          },
+        ],
+      },
+    ];
+    const fullcalendarEvent = {
+      extendedProps: {
+        WriteOnlyExternalEvents: [
+          {
+            GoogleCalendarPath: {
+              GoogleAccountId: "test@gmail.com",
+              GoogleCalendarId: "test-calendar@gmail.com",
+            },
+            SyncType: 2,
+            ManuallyEdited: false,
+          },
+        ],
+      },
+    };
+    const ret = addOrMergeWriteOnlyEvents(
+      row,
+      configuration,
+      fullcalendarEvent
+    );
+    expect(ret).toBe(false);
+    expect(fullcalendarEvent.extendedProps.WriteOnlyExternalEvents.length).toBe(
+      1
+    );
+    expect(
+      fullcalendarEvent.extendedProps.WriteOnlyExternalEvents[0].SyncType
+    ).toBe(2);
+    expect(
+      fullcalendarEvent.extendedProps.WriteOnlyExternalEvents[0]
+        .GoogleCalendarPath.GoogleAccountId
+    ).toBe("test@gmail.com");
+    expect(
+      fullcalendarEvent.extendedProps.WriteOnlyExternalEvents[0]
+        .GoogleCalendarPath.GoogleCalendarId
+    ).toBe("test-calendar@gmail.com");
   });
 });

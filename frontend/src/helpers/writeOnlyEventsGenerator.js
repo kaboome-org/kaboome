@@ -61,7 +61,10 @@ export function addOrMergeWriteOnlyEvents(
         prop.GoogleCalendarPath?.GoogleCalendarId ==
           WriteOnlyEvents[i].GoogleCalendarPath?.GoogleCalendarId
       ) {
-        if (!WriteOnlyEvents[i].ManuallyEdited) {
+        if (
+          !WriteOnlyEvents[i].ManuallyEdited &&
+          prop.SyncType != WriteOnlyEvents[i].SyncType
+        ) {
           WriteOnlyEvents[i] = prop;
           ret = true;
         }
