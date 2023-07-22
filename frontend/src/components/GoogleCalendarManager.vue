@@ -59,12 +59,15 @@
               cover
               transition-show="scale"
               transition-hide="scale"
-              v-on:hide="this.setSyncFromCalendars(prop.node)"
               v-on:before-show="
                 this.openSyncFromCalendars = prop.node.SyncFromCalendars
               "
             >
-              <JsonEditorVue v-model="this.openSyncFromCalendars" />
+              <SyncFromConfiguratorModal
+                :syncFromCalendars="this.openSyncFromCalendars"
+                :accounts="this.googleAccounts"
+                @sync-saved="(e) => this.setSyncFromCalendars(prop.node, e)"
+              />
             </q-popup-proxy>
           </q-btn>
         </div>
@@ -76,7 +79,7 @@
 <script>
 import { configStore } from "../stores/config.js";
 import { ref } from "vue";
-import JsonEditorVue from "json-editor-vue";
+import SyncFromConfiguratorModal from "src/components/SyncFromConfiguratorModal.vue";
 
 export default {
   methods: {
@@ -86,15 +89,11 @@ export default {
       ).ShouldSync = node.shouldSync;
       this.config.configDb.put(node.doc);
     },
-    setSyncFromCalendars: function (node) {
+    setSyncFromCalendars: function (node, e) {
       const target = node.doc.GoogleCalendarConfigs.find(
         (v) => v.GoogleCalendarPath.GoogleCalendarId == node.label
       );
-      if (typeof this.openSyncFromCalendars == "string") {
-        target.SyncFromCalendars = JSON.parse(this.openSyncFromCalendars);
-      } else {
-        target.SyncFromCalendars = this.openSyncFromCalendars;
-      }
+      target.SyncFromCalendars = e;
 
       this.config.configDb.put(node.doc);
     },
@@ -119,6 +118,6 @@ export default {
     this.config.registerChangesHandler(googleAccountLoader);
     googleAccountLoader();
   },
-  components: { JsonEditorVue },
+  components: { SyncFromConfiguratorModal },
 };
 </script>
