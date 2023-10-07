@@ -40,7 +40,7 @@
     "eslint": "^8.10.0",
     "eslint-config-prettier": "^8.1.0",
     "eslint-plugin-vue": "^9.0.0",
-    "postcss": "^8.4.14",
+    "postcss": "^8.4.31",
     "prettier": "^2.5.1",
     "vitest": "^0.15.0",
     "workbox-build": "^6.5.0",
