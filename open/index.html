@@ -1,47 +1,54 @@
 <!doctype html>
-<html lang="de">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
 <meta name="referrer" content="no-referrer">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; img-src 'self'; script-src 'sha256-XNlaEvyATXfymgU/lI0/sa6oRXdcHi3qBTESIj8EI2w='; base-uri 'none'; form-action 'none'">
-<title>Kaboome öffnen</title>
-<link rel="icon" href="../favicon.svg">
-<style>
-  :root { --bg:#fff; --text:#1f1f1f; --soft:#5f6368; --accent:#0b57d0; --line:#dadce0; color-scheme: light; }
-  @media (prefers-color-scheme: dark) { :root { --bg:#131314; --text:#e3e3e3; --soft:#a8abaf; --accent:#a8c7fa; --line:#3c4043; color-scheme: dark; } }
-  body { margin:0; min-height:100vh; display:grid; place-items:center; background:var(--bg); color:var(--text);
-         font:16px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding:16px; box-sizing:border-box; }
-  main { max-width:420px; text-align:center; }
-  h1 { font-size:22px; font-weight:500; margin:16px 0 8px; }
-  p { color:var(--soft); margin:0 0 20px; }
-  a.btn { display:inline-block; background:var(--accent); color:var(--bg); text-decoration:none; padding:10px 22px; border-radius:999px; font-weight:500; }
-  small { display:block; margin-top:24px; color:var(--soft); }
-  small a { color:var(--accent); }
-</style>
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self'; img-src 'self'; script-src 'sha256-EoLz3B/fZSbObsA1zj3OJz1gkNYgirnmsBrlYqHSPqg='; base-uri 'none'; form-action 'none'">
+<title>Open Kaboome</title>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../style.css">
 </head>
-<body>
+<body class="open">
 <main>
-  <img src="../favicon.svg" width="56" height="56" alt="">
-  <div id="ok" hidden>
+  <img src="../favicon.svg" width="64" height="64" alt="">
+  <span id="title-en" hidden>Open Kaboome</span>
+  <div id="ok-en" lang="en" hidden>
+    <h1>Opening Kaboome …</h1>
+    <p>If nothing happens, Kaboome is not installed on this device, or your browser is still asking for permission.</p>
+    <a class="btn primary" id="open-en" href="#">Open Kaboome</a>
+    <small>The reference in this link stays in your browser and is not sent to this server. <a href="../">What is Kaboome?</a></small>
+  </div>
+  <div id="bad-en" lang="en" hidden>
+    <h1>Invalid link</h1>
+    <p>This link does not point to a Kaboome entry.</p>
+    <small><a href="../">What is Kaboome?</a></small>
+  </div>
+  <span id="title-de" hidden>Kaboome öffnen</span>
+  <div id="ok-de" lang="de" hidden>
     <h1>Kaboome wird geöffnet …</h1>
     <p>Falls nichts passiert, ist Kaboome auf diesem Gerät nicht installiert oder der Browser fragt noch nach.</p>
-    <a class="btn" id="open" href="#">Kaboome öffnen</a>
+    <a class="btn primary" id="open-de" href="#">Kaboome öffnen</a>
+    <small>Die Kennung im Link bleibt in deinem Browser und wird nicht an diesen Server gesendet. <a href="../de/">Was ist Kaboome?</a></small>
   </div>
-  <div id="bad" hidden>
+  <div id="bad-de" lang="de" hidden>
     <h1>Ungültiger Link</h1>
     <p>Dieser Link zeigt auf keinen Kaboome-Eintrag.</p>
+    <small><a href="../de/">Was ist Kaboome?</a></small>
   </div>
-  <small>Die Kennung im Link bleibt in deinem Browser und wird nicht an diesen Server gesendet. <a href="../">Was ist Kaboome?</a></small>
 </main>
 <script>(function () {
+  var de = (navigator.languages || [navigator.language || ""]).some(function (l) { return /^de\b/i.test(l); });
+  var lang = de ? "de" : "en";
+  document.documentElement.lang = lang;
   var ref = location.hash.slice(1);
   var ok = /^[0-9a-v]{32}$/.test(ref);
-  document.getElementById(ok ? "ok" : "bad").hidden = false;
+  document.getElementById((ok ? "ok-" : "bad-") + lang).hidden = false;
+  document.title = document.getElementById("title-" + lang).textContent;
   if (!ok) return;
   var url = "kaboome://open/" + ref;
-  document.getElementById("open").href = url;
+  document.getElementById("open-" + lang).href = url;
   window.location.href = url;
 })();</script>
 </body>

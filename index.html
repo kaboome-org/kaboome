@@ -1,244 +1,132 @@
 <!doctype html>
-<html lang="de">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="referrer" content="no-referrer">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; img-src 'self'; base-uri 'none'; form-action 'none'">
-<meta name="description" content="Kaboome plant deine Aufgaben automatisch in freie Zeit – verschlüsselt, mit Google Kalender, ohne dass Google erfährt, woran du arbeitest.">
-<title>Kaboome – Kalender, der mitplant und schweigt</title>
-<link rel="icon" href="favicon.svg">
-<style>
-  :root {
-    --bg: #ffffff; --bg-soft: #f6f8fc; --surface: #ffffff; --line: #e3e6ea;
-    --text: #1f1f1f; --soft: #5f6368; --accent: #0b57d0; --accent-soft: #d3e3fd;
-    --privat: #039be5; --beruflich: #0b8043; --task: #8e24aa; --task-soft: #f3e5f5;
-    --blocked: #7f8790; --shadow: 0 1px 2px rgb(60 64 67 / 20%), 0 4px 16px rgb(60 64 67 / 10%);
-    color-scheme: light;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --bg: #131314; --bg-soft: #1a1b1d; --surface: #1e1f20; --line: #33363a;
-      --text: #e3e3e3; --soft: #a8abaf; --accent: #a8c7fa; --accent-soft: #0842a0;
-      --privat: #4fc3f7; --beruflich: #33b679; --task: #ce93d8; --task-soft: #3a2140;
-      --blocked: #8d949c; --shadow: 0 1px 3px rgb(0 0 0 / 50%), 0 6px 20px rgb(0 0 0 / 35%);
-      color-scheme: dark;
-    }
-  }
-  * { box-sizing: border-box; }
-  html { scroll-behavior: smooth; }
-  body { margin: 0; background: var(--bg); color: var(--text);
-         font: 17px/1.6 -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
-         -webkit-font-smoothing: antialiased; }
-  a { color: var(--accent); }
-  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 16px; }
-  header.nav { display: flex; align-items: center; gap: 10px; padding: 18px 0; }
-  header.nav img { width: 32px; height: 32px; }
-  header.nav strong { font-size: 19px; font-weight: 600; }
-  header.nav nav { margin-left: auto; display: flex; gap: 20px; font-size: 15px; }
-  header.nav nav a { color: var(--soft); text-decoration: none; }
-  header.nav nav a:hover { color: var(--text); }
-
-  .hero { display: grid; grid-template-columns: 1.05fr 1fr; gap: 48px; align-items: center; padding: 56px 0 72px; }
-  .eyebrow { display: inline-block; font-size: 13px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase;
-             color: var(--accent); background: var(--accent-soft); padding: 4px 10px; border-radius: 999px; }
-  h1 { font-size: clamp(36px, 5vw, 56px); line-height: 1.08; letter-spacing: -.02em; margin: 18px 0 18px; font-weight: 650; }
-  .lead { font-size: 20px; color: var(--soft); margin: 0 0 28px; max-width: 34ch; }
-  .cta { display: flex; gap: 12px; flex-wrap: wrap; }
-  .btn { display: inline-block; padding: 12px 22px; border-radius: 999px; font-weight: 600; text-decoration: none; font-size: 16px; }
-  .btn.primary { background: var(--accent); color: var(--bg); }
-  .btn.ghost { border: 1px solid var(--line); color: var(--text); }
-
-  /* Side-by-side: what you see vs. what Google sees */
-  .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-  .pane { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; box-shadow: var(--shadow); padding: 14px; }
-  .pane h3 { margin: 0 0 10px; font-size: 13px; font-weight: 600; color: var(--soft); display: flex; align-items: center; gap: 6px; }
-  .day { position: relative; height: 300px; border-left: 1px solid var(--line); margin-left: 34px; }
-  .hour { position: absolute; left: -34px; right: 0; border-top: 1px solid var(--line); font-size: 10px; color: var(--soft); }
-  .hour span { position: absolute; top: -8px; left: 0; background: var(--surface); padding-right: 4px; }
-  .ev { position: absolute; left: 4px; right: 4px; border-radius: 6px; padding: 3px 7px; font-size: 12px; line-height: 1.25; color: #fff; overflow: hidden; }
-  .ev b { display: block; font-weight: 600; }
-  .ev.privat { background: var(--privat); }
-  .ev.beruflich { background: var(--beruflich); }
-  .ev.task { background: var(--task); }
-  .ev.task-free { background: repeating-linear-gradient(-45deg, var(--task-soft), var(--task-soft) 6px, color-mix(in srgb, var(--task-soft) 80%, var(--task)) 6px, color-mix(in srgb, var(--task-soft) 80%, var(--task)) 12px);
-                  color: var(--text); border-left: 4px solid var(--task); }
-  .ev.blocked { background: var(--blocked); }
-  .ev.blocked-free { background: transparent; border: 1.5px dashed var(--blocked); color: var(--soft); }
-
-  section { padding: 72px 0; }
-  section.soft { background: var(--bg-soft); }
-  h2 { font-size: clamp(28px, 3.4vw, 38px); letter-spacing: -.01em; margin: 0 0 12px; font-weight: 650; }
-  .sub { color: var(--soft); max-width: 60ch; margin: 0 0 40px; font-size: 18px; }
-  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
-  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 22px; }
-  .card .ico { width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center; font-size: 20px; background: var(--accent-soft); margin-bottom: 14px; }
-  .card h3 { margin: 0 0 6px; font-size: 18px; }
-  .card p { margin: 0; color: var(--soft); font-size: 15.5px; }
-
-  .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; counter-reset: step; }
-  .step { padding: 22px; border-radius: 16px; border: 1px solid var(--line); background: var(--surface); }
-  .step::before { counter-increment: step; content: counter(step); display: grid; place-items: center; width: 32px; height: 32px;
-                  border-radius: 50%; background: var(--accent); color: var(--bg); font-weight: 700; margin-bottom: 12px; }
-  .step h3 { margin: 0 0 6px; font-size: 18px; }
-  .step p { margin: 0; color: var(--soft); font-size: 15.5px; }
-
-  .facts { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0 40px; margin: 0; padding: 0; list-style: none; }
-  .facts li { padding: 14px 0; border-bottom: 1px solid var(--line); display: flex; gap: 12px; }
-  .facts li::before { content: "✓"; color: var(--beruflich); font-weight: 700; }
-  .facts b { font-weight: 600; }
-  .note { margin-top: 28px; font-size: 14.5px; color: var(--soft); max-width: 70ch; }
-
-  footer { padding: 40px 0 56px; color: var(--soft); font-size: 14px; border-top: 1px solid var(--line); }
-  footer .wrap { display: flex; flex-wrap: wrap; gap: 8px 24px; }
-
-  @media (max-width: 860px) {
-    .hero { grid-template-columns: 1fr; padding-top: 24px; gap: 32px; }
-    .grid, .steps { grid-template-columns: 1fr; }
-    .facts { grid-template-columns: 1fr; }
-    header.nav nav { display: none; }
-  }
-  @media (max-width: 440px) {
-    .compare { grid-template-columns: 1fr; }
-  }
-</style>
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self'; img-src 'self'; base-uri 'none'; form-action 'none'">
+<title>Kaboome – a calendar that plans along and keeps quiet</title>
+<meta name="description" content="Kaboome schedules your tasks into free time automatically – encrypted, on top of Google Calendar, without Google learning what you work on.">
+<link rel="canonical" href="https://kaboome-org.github.io/kaboome/">
+<link rel="alternate" hreflang="en" href="https://kaboome-org.github.io/kaboome/">
+<link rel="alternate" hreflang="de" href="https://kaboome-org.github.io/kaboome/de/">
+<link rel="alternate" hreflang="x-default" href="https://kaboome-org.github.io/kaboome/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Kaboome – a calendar that plans along and keeps quiet">
+<meta property="og:description" content="Kaboome schedules your tasks into free time automatically – encrypted, on top of Google Calendar, without Google learning what you work on.">
+<meta property="og:url" content="https://kaboome-org.github.io/kaboome/">
+<meta property="og:locale" content="en_GB">
+<meta property="og:image" content="https://kaboome-org.github.io/kaboome/social.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
 <div class="wrap">
   <header class="nav">
-    <img src="favicon.svg" alt="">
+    <img class="logo" src="favicon.svg" alt="">
     <strong>Kaboome</strong>
-    <nav>
-      <a href="#funktionen">Funktionen</a>
-      <a href="#ablauf">So geht's</a>
-      <a href="#sicherheit">Sicherheit</a>
+    <nav aria-label="Page sections">
+      <a href="#features">Features</a>
+      <a href="#how">How it works</a>
+      <a href="#privacy">Privacy</a>
+      <a class="lang" href="de/" hreflang="de" lang="de">Deutsch</a>
     </nav>
   </header>
 
+  <main>
   <div class="hero">
     <div>
-      <span class="eyebrow">Kalender · Aufgaben · Verschlüsselung</span>
-      <h1>Dein Kalender plant mit. Und schweigt.</h1>
-      <p class="lead">Kaboome verteilt deine Aufgaben automatisch in freie Zeit und synchronisiert über Google Kalender. Google sieht dabei nur: <em>Blocked</em>.</p>
+      <span class="eyebrow">Calendar · Tasks · Encryption</span>
+      <h1>Your calendar plans along. <span class="pop">And keeps quiet.</span></h1>
+      <p class="lead">Kaboome schedules your tasks into free time and syncs through Google Calendar. All Google ever sees: <em>Blocked</em>.</p>
       <div class="cta">
-        <a class="btn primary" href="#ablauf">So funktioniert's</a>
-        <a class="btn ghost" href="https://github.com/kaboome-org/kaboome">Quellcode auf GitHub</a>
+        <a class="btn primary" href="#how">How it works</a>
+        <a class="btn ghost" href="https://github.com/kaboome-org/kaboome">Source on GitHub</a>
       </div>
     </div>
 
-    <div class="compare" aria-label="Vergleich: deine Ansicht und die Ansicht bei Google">
+    <div class="compare" role="img" aria-label="Comparison: what you see in Kaboome and what Google sees">
       <div class="pane">
-        <h3>🔓 Du in Kaboome</h3>
+        <h3>🔓 You in Kaboome</h3>
         <div class="day">
-          <div class="hour" style="top:0"><span>09</span></div>
-          <div class="hour" style="top:60px"><span>10</span></div>
-          <div class="hour" style="top:120px"><span>11</span></div>
-          <div class="hour" style="top:180px"><span>12</span></div>
-          <div class="hour" style="top:240px"><span>13</span></div>
-          <div class="ev beruflich" style="top:2px;height:56px"><b>Jour fixe</b>09:00 – 10:00</div>
-          <div class="ev task" style="top:62px;height:86px"><b>Angebot Müller GmbH</b>P1 · bis morgen</div>
-          <div class="ev task-free" style="top:152px;height:56px"><b>Steuererklärung</b>P3</div>
-          <div class="ev privat" style="top:212px;height:56px"><b>🔒 Zahnarzt</b>12:30</div>
+          <div class="hour h0"><span>09</span></div>
+          <div class="hour h1"><span>10</span></div>
+          <div class="hour h2"><span>11</span></div>
+          <div class="hour h3"><span>12</span></div>
+          <div class="hour h4"><span>13</span></div>
+          <div class="ev beruflich s1"><b>Weekly sync</b>09:00 – 10:00</div>
+          <div class="ev task s2"><b>Proposal for Miller Ltd</b>P1 · due tomorrow</div>
+          <div class="ev task-free s3"><b>Tax return</b>P3</div>
+          <div class="ev privat s4"><b>🔒 Dentist</b>12:30</div>
         </div>
       </div>
       <div class="pane">
-        <h3>👁 Google sieht</h3>
+        <h3>👁 Google sees</h3>
         <div class="day">
-          <div class="hour" style="top:0"><span>09</span></div>
-          <div class="hour" style="top:60px"><span>10</span></div>
-          <div class="hour" style="top:120px"><span>11</span></div>
-          <div class="hour" style="top:180px"><span>12</span></div>
-          <div class="hour" style="top:240px"><span>13</span></div>
-          <div class="ev beruflich" style="top:2px;height:56px"><b>Jour fixe</b>09:00 – 10:00</div>
-          <div class="ev blocked" style="top:62px;height:86px"><b>Blocked</b>10:00 – 11:30</div>
-          <div class="ev blocked-free" style="top:152px;height:56px"><b>Blocked</b>frei</div>
-          <div class="ev blocked" style="top:212px;height:56px"><b>Blocked</b>12:30</div>
+          <div class="hour h0"><span>09</span></div>
+          <div class="hour h1"><span>10</span></div>
+          <div class="hour h2"><span>11</span></div>
+          <div class="hour h3"><span>12</span></div>
+          <div class="hour h4"><span>13</span></div>
+          <div class="ev beruflich s1"><b>Weekly sync</b>09:00 – 10:00</div>
+          <div class="ev blocked s2"><b>Blocked</b>10:00 – 11:30</div>
+          <div class="ev blocked-free s3"><b>Blocked</b>free</div>
+          <div class="ev blocked s4"><b>Blocked</b>12:30</div>
         </div>
       </div>
     </div>
   </div>
+  </main>
 </div>
 
-<section class="soft" id="funktionen">
+<section class="soft" id="features">
   <div class="wrap">
-    <h2>Planen wie mit Assistenz. Privat wie auf Papier.</h2>
-    <p class="sub">Kaboome kombiniert automatisches Timeblocking mit einem Kalender, dessen Inhalte nur auf deinen Geräten lesbar sind.</p>
+    <h2>Planned like with an assistant. Private like on paper.</h2>
+    <p class="sub">Kaboome combines automatic time blocking with a calendar whose contents can only be read on your own devices.</p>
     <div class="grid">
-      <article class="card">
-        <div class="ico">⏱</div>
-        <h3>Automatisches Timeblocking</h3>
-        <p>Aufwand, Priorität und Deadline genügen. Kaboome verteilt die Arbeit auf freie Zeit, plant bei jeder Änderung neu und blockt den Slot, sobald es knapp wird.</p>
-      </article>
-      <article class="card">
-        <div class="ico">🔒</div>
-        <h3>Verschlüsselt vor Google</h3>
-        <p>Titel, Orte und Notizen werden auf deinem Gerät verschlüsselt. Google speichert sie nur als unlesbaren Datensatz und zeigt deinen Kollegen schlicht „Blocked“.</p>
-      </article>
-      <article class="card">
-        <div class="ico">⇄</div>
-        <h3>Privat und beruflich</h3>
-        <p>Zwei Google-Konten, eine Planung. Ein Arzttermin hält den Arbeitskalender frei, ohne dass dort steht, warum.</p>
-      </article>
-      <article class="card">
-        <div class="ico">📂</div>
-        <h3>Ein Ordner, kein Silo</h3>
-        <p>Jede Aufgabe ist eine iCalendar-Datei. Skripte und KI-Agenten dürfen mitarbeiten – jede Änderung landet erst in deinem Review.</p>
-      </article>
-      <article class="card">
-        <div class="ico">✦</div>
-        <h3>Lokaler Assistent</h3>
-        <p>„Bis Freitag den Bericht, etwa vier Stunden“ – der eingebaute Assistent läuft über Ollama auf deinem Rechner und schlägt nur vor.</p>
-      </article>
-      <article class="card">
-        <div class="ico">⟳</div>
-        <h3>Mehrere Geräte, auch offline</h3>
-        <p>Laptop und Handy dürfen gleichzeitig ändern. Kaboome führt Konflikte Feld für Feld zusammen, statt etwas zu überschreiben.</p>
-      </article>
+      <article class="card"><div class="ico" aria-hidden="true">⏱</div><h3>Automatic time blocking</h3><p>Effort, priority and deadline are enough. Kaboome spreads the work over free time, replans on every change and blocks the slot once time gets tight.</p></article>
+      <article class="card"><div class="ico" aria-hidden="true">🔒</div><h3>Encrypted towards Google</h3><p>Titles, places and notes are encrypted on your device. Google keeps only an unreadable record and shows your colleagues a plain “Blocked”.</p></article>
+      <article class="card"><div class="ico" aria-hidden="true">⇄</div><h3>Private and work</h3><p>Two Google accounts, one plan. A doctor&#x27;s appointment keeps your work calendar free without saying why.</p></article>
+      <article class="card"><div class="ico" aria-hidden="true">📂</div><h3>A folder, not a silo</h3><p>Every task is an iCalendar file. Scripts and AI agents may help out – every change waits for you in Review first.</p></article>
+      <article class="card"><div class="ico" aria-hidden="true">✦</div><h3>Local assistant</h3><p>“The report by Friday, about four hours” – the built-in assistant runs on Ollama on your computer and only makes proposals.</p></article>
+      <article class="card"><div class="ico" aria-hidden="true">⟳</div><h3>Several devices, even offline</h3><p>Laptop and phone may change things at the same time. Kaboome merges conflicts field by field instead of overwriting anything.</p></article>
     </div>
   </div>
 </section>
 
-<section id="ablauf">
+<section id="how">
   <div class="wrap">
-    <h2>So geht's</h2>
-    <p class="sub">Kein eigener Server, kein Konto bei uns. Google Kalender ist nur der Transportweg.</p>
-    <div class="steps">
-      <div class="step">
-        <h3>Verbinden</h3>
-        <p>Kaboome meldet sich direkt bei deinen Google-Konten an. Dein Schlüssel entsteht auf dem Gerät und bleibt dort.</p>
-      </div>
-      <div class="step">
-        <h3>Aufgaben anlegen</h3>
-        <p>Was zu tun ist, wie lange es dauert, bis wann. Schlaf, Pausen oder Feierabend sind einfach wiederkehrende Termine.</p>
-      </div>
-      <div class="step">
-        <h3>Kaboome plant</h3>
-        <p>Blöcke wandern in freie Zeit und weichen aus, wenn jemand dort einen Termin bucht. Ein Klick auf „Blocked“ führt zurück in die App.</p>
-      </div>
-    </div>
+    <h2>How it works</h2>
+    <p class="sub">No server of ours, no account with us. Google Calendar is just the transport.</p>
+    <ol class="steps">
+      <li class="step"><h3>Connect</h3><p>Kaboome signs in to your Google accounts directly. Your key is created on the device and stays there.</p></li>
+      <li class="step"><h3>Add tasks</h3><p>What needs doing, how long it takes, by when. Sleep, breaks or the end of the workday are simply recurring events.</p></li>
+      <li class="step"><h3>Kaboome plans</h3><p>Blocks move into free time and step aside when someone books a meeting there. A click on “Blocked” takes you back into the app.</p></li>
+    </ol>
   </div>
 </section>
 
-<section class="soft" id="sicherheit">
+<section class="soft" id="privacy">
   <div class="wrap">
-    <h2>Was Google sieht – und was nicht</h2>
-    <p class="sub">Google muss wissen, wann du belegt bist. Mehr nicht.</p>
+    <h2>What Google sees – and what it doesn&#x27;t</h2>
+    <p class="sub">Google needs to know when you are busy. Nothing more.</p>
     <ul class="facts">
-      <li><span><b>Sieht Google:</b> wann du belegt oder frei bist – zusammengefasst, ohne Zuordnung zu einzelnen Aufgaben.</span></li>
-      <li><span><b>Sieht Google nicht:</b> Titel, Orte, Notizen, Prioritäten, Deadlines und Wiederholungen deiner eigenen Einträge.</span></li>
-      <li><span><b>Verschlüsselung:</b> AES-256-GCM, Schlüsselableitung mit HKDF-SHA-512, nach den Vorgaben von CNSA 2.0 und BSI TR-02102.</span></li>
-      <li><span><b>Schlüssel:</b> nur auf deinen Geräten; neue Geräte werden per QR-Code oder Recovery-Code gekoppelt.</span></li>
-      <li><span><b>Datenschutz dieser Seite:</b> keine Cookies, keine Tracker, keine Schriften oder Skripte von Dritten.</span></li>
-      <li><span><b>Links zurück in die App:</b> die Kennung steht hinter dem „#“ und verlässt deinen Browser nicht.</span></li>
+      <li><span><b>Google sees:</b> when you are busy or free – merged, without linking it to individual tasks.</span></li>
+      <li><span><b>Google does not see:</b> titles, places, notes, priorities, deadlines and recurrence of your own entries.</span></li>
+      <li><span><b>Encryption:</b> AES-256-GCM, key derivation with HKDF-SHA-512, following the algorithm choices of CNSA 2.0 and BSI TR-02102.</span></li>
+      <li><span><b>Keys:</b> only on your devices; new devices are paired with a recovery code.</span></li>
+      <li><span><b>This website:</b> no cookies, no trackers, no fonts or scripts from third parties.</span></li>
+      <li><span><b>Links back into the app:</b> the reference sits after the “#” and never leaves your browser.</span></li>
     </ul>
-    <p class="note">Kaboome ist ein experimentelles Privatprojekt und nicht zertifiziert. Termine, zu denen dich andere einladen, liegen weiterhin im Klartext bei Google – sie stammen ja von dort.</p>
+    <p class="note">Kaboome is an experimental project and not certified. Events other people invite you to remain in plain text at Google – that is where they come from.</p>
   </div>
 </section>
 
 <footer>
   <div class="wrap">
     <span>Kaboome · <a href="https://github.com/kaboome-org/kaboome">GitHub</a> · GPL-3.0</span>
-    <span>Keine Cookies · keine Tracker</span>
+    <span>No cookies · no trackers</span>
   </div>
 </footer>
 </body>
